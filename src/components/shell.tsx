@@ -84,7 +84,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function ShellInner({ children }: { children: React.ReactNode }) {
-  const { createProspect, updateProspect, prospects, seedDemo, reset } = useProspects();
+  const { createProspect, updateProspect, prospects, reset } = useProspects();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Prospect | null>(null);
   const [preset, setPreset] = useState<{ category?: CategoryId; subcategory?: string }>();
@@ -118,7 +118,6 @@ function ShellInner({ children }: { children: React.ReactNode }) {
             <NavItems />
             <SidebarFooter
               empty={prospects.length === 0}
-              onSeed={() => seedDemo()}
               onClear={() => setConfirmReset(true)}
             />
           </div>
@@ -173,7 +172,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SidebarFooter({ empty, onSeed, onClear }: { empty: boolean; onSeed: () => void; onClear: () => void }) {
+function SidebarFooter({ empty, onClear }: { empty: boolean; onClear: () => void }) {
   const auth = useAuth();
   return (
     <div className="mt-auto flex flex-col gap-2 rounded-xl px-3 py-3 text-[11px] leading-relaxed text-ink-faint" style={{ background: "rgba(255,255,255,.4)" }}>
@@ -188,13 +187,9 @@ function SidebarFooter({ empty, onSeed, onClear }: { empty: boolean; onSeed: () 
       ) : (
         <span>💾 Dados salvos neste navegador. Modo local (sem login).</span>
       )}
-      <div className="flex gap-1.5">
-        {empty ? (
-          <button className="btn btn-ghost !py-1 !text-[11px]" onClick={onSeed}>✨ Dados de exemplo</button>
-        ) : (
-          <button className="btn btn-ghost !py-1 !text-[11px]" onClick={onClear}>🗑 Limpar dados</button>
-        )}
-      </div>
+      {!empty && (
+        <button className="btn btn-ghost !py-1 !text-[11px]" onClick={onClear}>🗑 Limpar todos os dados</button>
+      )}
     </div>
   );
 }

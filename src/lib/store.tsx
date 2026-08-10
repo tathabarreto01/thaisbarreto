@@ -30,7 +30,6 @@ interface StoreValue {
     entry: Omit<ContactLogEntry, "id">,
   ) => Promise<Prospect>;
   saveChallenge: (challenge: WeeklyChallenge) => Promise<void>;
-  seedDemo: () => Promise<void>;
   reset: () => Promise<void>;
 }
 
@@ -118,12 +117,6 @@ export function ProspectsProvider({ children }: { children: React.ReactNode }) {
     [repo],
   );
 
-  const seedDemo = useCallback(async () => {
-    const { SAMPLE_PROSPECTS } = await import("./seed");
-    const created = await repo.bulkCreate(SAMPLE_PROSPECTS);
-    setProspects((prev) => [...created, ...prev]);
-  }, [repo]);
-
   const reset = useCallback(async () => {
     const data = await repo.reset();
     hydrate(data);
@@ -139,7 +132,6 @@ export function ProspectsProvider({ children }: { children: React.ReactNode }) {
     toggleFavorite,
     addContact,
     saveChallenge,
-    seedDemo,
     reset,
   };
 
