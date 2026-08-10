@@ -11,8 +11,13 @@ import {
 } from "react";
 import type { CategoryId, Prospect } from "@/lib/types";
 import { ProspectsProvider, useProspects } from "@/lib/store";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { ProspectForm } from "./prospect-form";
+import { LoginScreen } from "./login-screen";
 import { ConfirmDialog } from "./ui";
+
+const CLOUD = isSupabaseConfigured();
 
 /* ---------- Global form controller ---------- */
 interface FormCtx {
@@ -111,16 +116,11 @@ function ShellInner({ children }: { children: React.ReactNode }) {
               Novo prospecto
             </button>
             <NavItems />
-            <div className="mt-auto flex flex-col gap-2 rounded-xl px-3 py-3 text-[11px] leading-relaxed text-ink-faint" style={{ background: "rgba(255,255,255,.4)" }}>
-              <span>💾 Dados salvos neste navegador. Em breve: nuvem com login.</span>
-              <div className="flex gap-1.5">
-                {prospects.length === 0 ? (
-                  <button className="btn btn-ghost !py-1 !text-[11px]" onClick={() => seedDemo()}>✨ Dados de exemplo</button>
-                ) : (
-                  <button className="btn btn-ghost !py-1 !text-[11px]" onClick={() => setConfirmReset(true)}>🗑 Limpar dados</button>
-                )}
-              </div>
-            </div>
+            <SidebarFooter
+              empty={prospects.length === 0}
+              onSeed={() => seedDemo()}
+              onClear={() => setConfirmReset(true)}
+            />
           </div>
         </aside>
 
@@ -173,10 +173,62 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+function SidebarFooter({ empty, onSeed, onClear }: { empty: boolean; onSeed: () => void; onClear: () => void }) {
+  const auth = useAuth();
+  return (
+    <div className="mt-auto flex flex-col gap-2 rounded-xl px-3 py-3 text-[11px] leading-relaxed text-ink-faint" style={{ background: "rgba(255,255,255,.4)" }}>
+      {CLOUD ? (
+        <div className="flex items-center gap-2">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-white" style={{ background: "linear-gradient(135deg,#2563eb,#60a5fa)" }}>
+            {(auth.user?.email?.[0] ?? "?").toUpperCase()}
+          </span>
+          <span className="min-w-0 flex-1 truncate font-semibold text-ink-soft" title={auth.user?.email ?? ""}>{auth.user?.email ?? "Conectado"}</span>
+          <button className="btn btn-ghost !px-2 !py-1 !text-[11px]" onClick={() => auth.signOut()} title="Sair">Sair</button>
+        </div>
+      ) : (
+        <span>💾 Dados salvos neste navegador. Modo local (sem login).</span>
+      )}
+      <div className="flex gap-1.5">
+        {empty ? (
+          <button className="btn btn-ghost !py-1 !text-[11px]" onClick={onSeed}>✨ Dados de exemplo</button>
+        ) : (
+          <button className="btn btn-ghost !py-1 !text-[11px]" onClick={onClear}>🗑 Limpar dados</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FullSplash() {
+  return (
+    <div className="relative z-10 grid min-h-dvh place-items-center">
+      <div className="flex flex-col items-center gap-4">
+        <span className="grid h-14 w-14 animate-pulse place-items-center rounded-2xl text-white" style={{ background: "linear-gradient(135deg,#2563eb,#60a5fa)" }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3l6 2 5-2v14l-5 2-6-2-5 2V5l5-2z" /><path d="M9 3v16M15 5v16" /></svg>
+        </span>
+        <span className="text-sm font-semibold text-ink-faint">Carregando…</span>
+      </div>
+    </div>
+  );
+}
+
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { loading, session } = useAuth();
+  if (CLOUD) {
+    if (loading) return <FullSplash />;
+    if (!session) return <LoginScreen />;
+  }
   return (
     <ProspectsProvider>
       <ShellInner>{children}</ShellInner>
     </ProspectsProvider>
+  );
+}
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthProvider>
+      <AuthGate>{children}</AuthGate>
+    </AuthProvider>
   );
 }

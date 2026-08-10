@@ -5,6 +5,8 @@ import type {
   WeeklyChallenge,
   ContactLogEntry,
 } from "./types";
+import { isSupabaseConfigured } from "./supabase";
+import { SupabaseRepository } from "./supabase-repository";
 
 /**
  * Swappable data layer.
@@ -187,13 +189,20 @@ let instance: ProspectRepository | null = null;
 /**
  * Single place that decides which backend powers the app.
  *
- * To migrate to the cloud later:
- *   1. Provision Neon Postgres (skill: vercel-storage) + Clerk (skill: auth).
- *   2. Implement `CloudRepository` that calls Server Actions hitting Postgres,
- *      scoped to the Clerk `userId`.
- *   3. Return it here. No UI/component changes required.
+ * - Supabase configured (NEXT_PUBLIC_SUPABASE_* set) → cloud + login, data
+ *   scoped per user via RLS.
+ * - Otherwise → localStorage (single device, no login).
+ *
+ * Everything above (UI, store, components) is backend-agnostic — only this
+ * function decides which implementation is used.
  */
 export function getRepository(): ProspectRepository {
-  if (!instance) instance = new LocalStorageRepository();
+  if (!instance) {
+    if (isSupabaseConfigured()) {
+      instance = new SupabaseRepository();
+    } else {
+      instance = new LocalStorageRepository();
+    }
+  }
   return instance;
 }

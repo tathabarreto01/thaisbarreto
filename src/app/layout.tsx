@@ -35,8 +35,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${display.variable} ${body.variable} ${hand.variable} h-full`}>
-      <body className="min-h-full">
+    <html lang="pt-BR" className={`${display.variable} ${body.variable} ${hand.variable} h-full`} suppressHydrationWarning>
+      <body className="min-h-full" suppressHydrationWarning>
         <AppShell>{children}</AppShell>
       </body>
     </html>
