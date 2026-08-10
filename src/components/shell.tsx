@@ -59,7 +59,7 @@ function Brand() {
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <nav className="flex flex-col gap-1">
+    <nav className="stagger flex flex-col gap-1">
       {NAV.map((item) => {
         const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
         return (

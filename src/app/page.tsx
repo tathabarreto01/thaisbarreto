@@ -177,12 +177,12 @@ function StatTile({ label, value, icon, tone }: { label: string; value: number; 
 export function LoadingScreen() {
   return (
     <div className="mx-auto max-w-6xl">
-      <div className="grid animate-pulse grid-cols-2 gap-3 pt-8 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="glass h-20" />)}
+      <div className="grid grid-cols-2 gap-3 pt-8 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="glass shimmer h-20" />)}
       </div>
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <div className="glass h-40 animate-pulse" />
-        <div className="glass h-40 animate-pulse lg:col-span-2" />
+        <div className="glass shimmer h-40" />
+        <div className="glass shimmer h-40 lg:col-span-2" />
       </div>
     </div>
   );
