@@ -1,0 +1,99 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useProspects } from "@/lib/store";
+import { computeStats, registeredThisWeek } from "@/lib/derive";
+import { GlassCard, ProgressRing } from "@/components/ui";
+import { useProspectForm } from "@/components/shell";
+import { LoadingScreen } from "../page";
+
+export default function DesafioPage() {
+  const { ready, prospects, challenge, saveChallenge } = useProspects();
+  const { openCreate } = useProspectForm();
+  const stats = useMemo(() => computeStats(prospects), [prospects]);
+  const registered = registeredThisWeek(prospects);
+
+  const [editing, setEditing] = useState(false);
+  const [goalCount, setGoalCount] = useState(challenge?.goalCount ?? 15);
+  const [contactGoal, setContactGoal] = useState(challenge?.contactGoal ?? 5);
+
+  if (!ready || !challenge) return <LoadingScreen />;
+
+  const regPct = Math.min(1, registered / Math.max(1, challenge.goalCount));
+  const contactPct = Math.min(1, stats.contactsThisWeek / Math.max(1, challenge.contactGoal));
+  const complete = regPct >= 1 && contactPct >= 1;
+
+  async function save() {
+    await saveChallenge({ ...challenge!, goalCount, contactGoal });
+    setEditing(false);
+  }
+  async function nextWeek() {
+    await saveChallenge({ week: challenge!.week + 1, goalCount, contactGoal, startedAt: new Date().toISOString() });
+  }
+
+  return (
+    <div className="mx-auto flex max-w-4xl flex-col gap-5 pb-6">
+      <header className="reveal pt-2">
+        <p className="font-hand text-2xl text-brand-500">Um passo de cada vez, toda semana.</p>
+        <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">Desafio da semana {challenge.week}</h1>
+      </header>
+
+      <GlassCard strong className="reveal p-6">
+        <div className="flex flex-col items-center gap-8 sm:flex-row sm:justify-around">
+          <div className="flex flex-col items-center gap-2">
+            <ProgressRing value={registered} max={challenge.goalCount} size={130} label={`${registered}/${challenge.goalCount}`} sub="prospectos" />
+            <span className="text-sm font-semibold text-ink-soft">Registrar prospectos</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <ProgressRing value={stats.contactsThisWeek} max={challenge.contactGoal} size={130} label={`${stats.contactsThisWeek}/${challenge.contactGoal}`} sub="contatos" />
+            <span className="text-sm font-semibold text-ink-soft">Fazer contatos</span>
+          </div>
+        </div>
+
+        {complete ? (
+          <div className="mt-6 rounded-2xl p-4 text-center" style={{ background: "linear-gradient(135deg,rgba(34,197,94,.14),rgba(96,165,250,.14))" }}>
+            <p className="font-display text-lg font-bold text-ink">🎉 Desafio concluído!</p>
+            <p className="text-sm text-ink-soft">Excelente trabalho. Pronto para a próxima semana?</p>
+            <button className="btn btn-primary mt-3" onClick={nextWeek}>Começar semana {challenge.week + 1} →</button>
+          </div>
+        ) : (
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <button className="btn btn-primary" onClick={() => openCreate()}>+ Registrar prospecto</button>
+            <button className="btn btn-ghost" onClick={nextWeek}>Avançar semana →</button>
+          </div>
+        )}
+      </GlassCard>
+
+      <GlassCard className="reveal p-5">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display font-bold text-ink">Metas da semana</h2>
+          {!editing && <button className="btn btn-ghost !py-1.5 !text-xs" onClick={() => setEditing(true)}>Ajustar</button>}
+        </div>
+        {editing ? (
+          <div className="mt-4 flex flex-wrap items-end gap-4">
+            <div>
+              <label className="label">Prospectos</label>
+              <input type="number" min={1} className="field !w-28" value={goalCount} onChange={(e) => setGoalCount(Math.max(1, Number(e.target.value)))} />
+            </div>
+            <div>
+              <label className="label">Contatos</label>
+              <input type="number" min={1} className="field !w-28" value={contactGoal} onChange={(e) => setContactGoal(Math.max(1, Number(e.target.value)))} />
+            </div>
+            <div className="flex gap-2">
+              <button className="btn btn-primary" onClick={save}>Salvar</button>
+              <button className="btn btn-ghost" onClick={() => { setEditing(false); setGoalCount(challenge.goalCount); setContactGoal(challenge.contactGoal); }}>Cancelar</button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-ink-soft">Meta: registrar <b className="text-ink">{challenge.goalCount}</b> prospectos e fazer <b className="text-ink">{challenge.contactGoal}</b> contatos nesta semana.</p>
+        )}
+      </GlassCard>
+
+      <div className="grid grid-cols-3 gap-3">
+        <GlassCard className="reveal p-4 text-center"><div className="font-display text-2xl font-extrabold text-ink">{stats.total}</div><div className="text-xs text-ink-faint">Total no mapa</div></GlassCard>
+        <GlassCard className="reveal p-4 text-center"><div className="font-display text-2xl font-extrabold text-ink">{stats.favorites}</div><div className="text-xs text-ink-faint">Principais</div></GlassCard>
+        <GlassCard className="reveal p-4 text-center"><div className="font-display text-2xl font-extrabold text-ink">{stats.hot}</div><div className="text-xs text-ink-faint">Muito interessados</div></GlassCard>
+      </div>
+    </div>
+  );
+}

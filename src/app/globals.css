@@ -1,26 +1,242 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Mapa de Prospectos — Glassmorphism (azul & branco)
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand blues */
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-200: #bfdbfe;
+  --brand-300: #93c5fd;
+  --brand-400: #60a5fa;
+  --brand-500: #3b82f6;
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --brand-800: #1e40af;
+  --brand-900: #1e3a8a;
+  --brand-950: #172554;
+
+  --ink: #0f2044;
+  --ink-soft: #3b4a6b;
+  --ink-faint: #6b7a9c;
+
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-ring: rgba(37, 99, 235, 0.10);
+  --glass-shadow: 0 10px 30px -12px rgba(23, 55, 120, 0.35);
+  --glass-shadow-lg: 0 24px 60px -20px rgba(23, 55, 120, 0.45);
+  --glass-blur: 18px;
+
+  --radius: 20px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--brand-50);
+  --color-foreground: var(--ink);
+
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+  --font-hand: var(--font-hand);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: color-mix(in srgb, var(--brand-500) 12%, transparent);
+}
+
+html {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: #e8f0ff;
+  background-image:
+    radial-gradient(60rem 60rem at 8% -10%, rgba(96, 165, 250, 0.45), transparent 55%),
+    radial-gradient(55rem 55rem at 100% 0%, rgba(37, 99, 235, 0.35), transparent 50%),
+    radial-gradient(50rem 50rem at 50% 120%, rgba(147, 197, 253, 0.5), transparent 55%),
+    linear-gradient(180deg, #eaf2ff 0%, #dfeaff 45%, #e9f1ff 100%);
+  background-attachment: fixed;
+}
+
+/* Subtle grain for depth */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Glass surfaces ---------- */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(170%);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(170%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius);
+}
+
+.glass-hover {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease, background 0.25s ease;
+}
+.glass-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--glass-shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  background: var(--glass-bg-strong);
+}
+
+/* ---------- Typography helpers ---------- */
+.font-display { font-family: var(--font-display), sans-serif; }
+.font-hand { font-family: var(--font-hand), cursive; }
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--brand-700), var(--brand-500) 55%, var(--brand-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.6rem 1.15rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+  white-space: nowrap;
+}
+.btn:active { transform: translateY(1px) scale(0.99); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand-600), var(--brand-500));
+  box-shadow: 0 10px 24px -10px rgba(37, 99, 235, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+.btn-primary:hover { box-shadow: 0 16px 30px -10px rgba(37, 99, 235, 0.85); transform: translateY(-1px); }
+
+.btn-ghost {
+  color: var(--brand-700);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(8px);
+}
+.btn-ghost:hover { background: rgba(255, 255, 255, 0.8); }
+
+.btn-danger { color: #b91c1c; background: rgba(254, 226, 226, 0.6); border: 1px solid rgba(248, 113, 113, 0.4); }
+.btn-danger:hover { background: rgba(254, 202, 202, 0.85); }
+
+/* ---------- Inputs ---------- */
+.field {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  background: rgba(255, 255, 255, 0.65);
+  padding: 0.62rem 0.85rem;
+  font-size: 0.92rem;
+  color: var(--ink);
+  transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.field::placeholder { color: var(--ink-faint); }
+.field:focus {
+  outline: none;
+  border-color: var(--brand-500);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18);
+}
+select.field { appearance: none; cursor: pointer; }
+
+.label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--brand-700);
+  margin-bottom: 0.35rem;
+}
+
+/* ---------- Chips / badges ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(37, 99, 235, 0.25);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(37, 99, 235, 0.4); background-clip: content-box; }
+
+/* ---------- Animations ---------- */
+@keyframes floatUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(2%, -3%) scale(1.05); }
+}
+.reveal { animation: floatUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* ---------- Print (ficha) ---------- */
+@media print {
+  body { background: #fff !important; }
+  body::before { display: none; }
+  .no-print { display: none !important; }
+  .glass, .glass-strong { background: #fff !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; backdrop-filter: none !important; }
+  .print-page { break-after: page; }
 }
