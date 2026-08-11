@@ -3,14 +3,23 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useProspects } from "@/lib/store";
-import { INTIMACY } from "@/lib/taxonomy";
+import { INTIMACY, MOTIVATION_OTHER } from "@/lib/taxonomy";
+import type { Prospect } from "@/lib/types";
 import { GlassCard, EmptyState, IntimacyDots, StarRating } from "@/components/ui";
 import { useProspectForm } from "@/components/shell";
 import { LoadingScreen } from "../page";
 
+function motivationsText(p: Prospect, sep = " · "): string {
+  const parts = [...(p.motivations ?? [])];
+  if (p.motivations?.includes(MOTIVATION_OTHER) && p.interestNotes) {
+    parts.push(p.interestNotes);
+  }
+  return parts.join(sep);
+}
+
 export default function Top5Page() {
   const { ready, prospects, updateProspect, toggleFavorite } = useProspects();
-  const { openEdit } = useProspectForm();
+  const { openEdit, openDetail } = useProspectForm();
 
   const favorites = useMemo(
     () => prospects.filter((p) => p.favorite).sort((a, b) => b.interest - a.interest),
@@ -43,20 +52,20 @@ export default function Top5Page() {
         <GlassCard strong className="reveal overflow-hidden p-0">
           {/* header row */}
           <div className="hidden grid-cols-[1.4fr_0.9fr_1fr_1.6fr_1.4fr] gap-3 px-5 py-3 text-[11px] font-bold uppercase tracking-wide text-white md:grid" style={{ background: "linear-gradient(135deg,#1e40af,#2563eb)" }}>
-            <span>Nome</span><span>Intimidade</span><span>Interesse</span><span>Pode se interessar por</span><span>Próximo passo</span>
+            <span>Nome</span><span>Intimidade</span><span>Interesse</span><span>Fatores de motivação</span><span>Próximo passo</span>
           </div>
           <div className="divide-y divide-white/60">
             {favorites.map((p, idx) => (
               <div key={p.id} className="grid grid-cols-1 gap-2 px-5 py-4 transition-colors hover:bg-white/40 md:grid-cols-[1.4fr_0.9fr_1fr_1.6fr_1.4fr] md:items-center md:gap-3">
                 <div className="flex items-center gap-2">
                   <span className="font-display text-lg font-extrabold text-brand-500">{idx + 1}.</span>
-                  <button onClick={() => openEdit(p)} className="truncate text-left font-display font-bold text-ink hover:text-brand-700">{p.name}</button>
+                  <button onClick={() => openDetail(p)} className="truncate text-left font-display font-bold text-ink hover:text-brand-700">{p.name}</button>
                   <button onClick={() => toggleFavorite(p.id)} title="Remover dos principais" className="ml-auto md:hidden" style={{ background: "none", border: "none", cursor: "pointer" }}>⭐</button>
                 </div>
                 <div><IntimacyDots value={p.intimacy} /></div>
                 <div><StarRating value={p.interest} size={18} onChange={(v) => updateProspect(p.id, { interest: v })} /></div>
                 <div className="text-sm text-ink-soft">
-                  {p.interestNotes || <span className="text-ink-faint">—</span>}
+                  {motivationsText(p) || <span className="text-ink-faint">—</span>}
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="flex-1 text-ink-soft">{p.nextStep || <span className="text-ink-faint">—</span>}</span>

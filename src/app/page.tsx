@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useProspects } from "@/lib/store";
 import { computeStats, registeredThisWeek } from "@/lib/derive";
-import { CATEGORY_MAP, INTEREST_LABELS } from "@/lib/taxonomy";
+import { getCategoryDef, INTEREST_LABELS } from "@/lib/taxonomy";
 import { GlassCard, ProgressRing, StatusBadge, EmptyState } from "@/components/ui";
 import { useProspectForm } from "@/components/shell";
 
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                 {prospects.slice(0, 6).map((p) => (
                   <tr key={p.id} className="border-t border-white/60">
                     <td className="py-2.5 font-semibold text-ink">{p.favorite && <span className="mr-1 text-amber-500">★</span>}{p.name}</td>
-                    <td className="py-2.5 text-ink-soft">{CATEGORY_MAP[p.category].icon} {CATEGORY_MAP[p.category].label}</td>
+                    <td className="py-2.5 text-ink-soft">{getCategoryDef(p.category).icon} {getCategoryDef(p.category).label}</td>
                     <td className="py-2.5 text-ink-soft">{p.interest > 0 ? `${p.interest}★ · ${INTEREST_LABELS[p.interest - 1]}` : "—"}</td>
                     <td className="py-2.5"><StatusBadge status={p.status} /></td>
                   </tr>

@@ -2,26 +2,26 @@
 // Kept framework-agnostic so it can back either localStorage or a cloud DB.
 
 export type CategoryId =
-  | "familia"
-  | "amigos"
-  | "redes"
-  | "comunidade"
-  | "trabalho";
+  | 'familia'
+  | 'amigos'
+  | 'redes'
+  | 'comunidade'
+  | 'trabalho';
 
-export type Intimacy = "muito_proximo" | "conhecido" | "prospecto_digital";
+export type Intimacy = 'muito_proximo' | 'conhecido' | 'prospecto_digital';
 
 export type FunnelStatus =
-  | "novo"
-  | "contatado"
-  | "reuniao"
-  | "negociando"
-  | "fechado"
-  | "perdido";
+  | 'novo'
+  | 'contatado'
+  | 'reuniao'
+  | 'acompanhamento'
+  | 'fechado'
+  | 'perdido';
 
 export interface ContactLogEntry {
   id: string;
   date: string; // ISO
-  channel: "ligacao" | "whatsapp" | "email" | "presencial" | "outro";
+  channel: 'ligacao' | 'whatsapp' | 'email' | 'presencial' | 'outro';
   note: string;
 }
 
@@ -38,7 +38,8 @@ export interface Prospect {
   phone?: string;
   email?: string;
   city?: string;
-  interestNotes?: string; // "Pelo que ele pode se interessar?"
+  motivations: string[]; // "Fatores de Motivação" (múltipla escolha)
+  interestNotes?: string; // texto livre quando "Outro" é marcado em motivations
   nextStep?: string; // "Próximo passo"
   nextStepDate?: string; // ISO date
   favorite: boolean; // "Meus 5 principais"
@@ -63,6 +64,6 @@ export interface AppData {
 
 export type ProspectDraft = Omit<
   Prospect,
-  "id" | "createdAt" | "updatedAt" | "history" | "favorite" | "status"
+  'id' | 'createdAt' | 'updatedAt' | 'history' | 'favorite' | 'status' | 'motivations'
 > &
-  Partial<Pick<Prospect, "favorite" | "status" | "history">>;
+  Partial<Pick<Prospect, 'favorite' | 'status' | 'history' | 'motivations'>>;

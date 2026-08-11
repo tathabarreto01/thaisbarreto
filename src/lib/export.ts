@@ -1,10 +1,18 @@
 import type { Prospect } from "./types";
-import { CATEGORY_MAP, INTIMACY_MAP, STATUS_MAP } from "./taxonomy";
+import { CATEGORY_MAP, INTIMACY_MAP, STATUS_MAP, MOTIVATION_OTHER } from "./taxonomy";
 
 function csvCell(value: unknown): string {
   const s = value == null ? "" : String(value);
   if (/[",\n;]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
+}
+
+function motivationsText(p: Prospect): string {
+  const parts = [...(p.motivations ?? [])];
+  if (p.motivations?.includes(MOTIVATION_OTHER) && p.interestNotes) {
+    parts.push(p.interestNotes);
+  }
+  return parts.join("; ");
 }
 
 export function prospectsToCSV(prospects: Prospect[]): string {
@@ -18,7 +26,7 @@ export function prospectsToCSV(prospects: Prospect[]): string {
     "Telefone/WhatsApp",
     "E-mail",
     "Cidade",
-    "Pode se interessar por",
+    "Fatores de motivação",
     "Próximo passo",
     "Data do próximo passo",
     "Favorito",
@@ -36,7 +44,7 @@ export function prospectsToCSV(prospects: Prospect[]): string {
     p.phone ?? "",
     p.email ?? "",
     p.city ?? "",
-    p.interestNotes ?? "",
+    motivationsText(p),
     p.nextStep ?? "",
     p.nextStepDate ? new Date(p.nextStepDate).toLocaleDateString("pt-BR") : "",
     p.favorite ? "Sim" : "Não",

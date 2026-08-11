@@ -67,6 +67,7 @@ class LocalStorageRepository implements ProspectRepository {
         ...p,
         history: p.history ?? [],
         favorite: Boolean(p.favorite),
+        motivations: p.motivations ?? [],
       }));
       return parsed;
     } catch {
@@ -98,6 +99,7 @@ class LocalStorageRepository implements ProspectRepository {
       phone: draft.phone,
       email: draft.email,
       city: draft.city,
+      motivations: draft.motivations ?? [],
       interestNotes: draft.interestNotes,
       nextStep: draft.nextStep,
       nextStepDate: draft.nextStepDate,
@@ -124,6 +126,7 @@ class LocalStorageRepository implements ProspectRepository {
       phone: draft.phone,
       email: draft.email,
       city: draft.city,
+      motivations: draft.motivations ?? [],
       interestNotes: draft.interestNotes,
       nextStep: draft.nextStep,
       nextStepDate: draft.nextStepDate,

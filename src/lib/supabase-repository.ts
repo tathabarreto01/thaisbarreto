@@ -22,6 +22,7 @@ interface Row {
   phone: string | null;
   email: string | null;
   city: string | null;
+  motivations: string[] | null;
   interest_notes: string | null;
   next_step: string | null;
   next_step_date: string | null;
@@ -43,6 +44,7 @@ function rowToProspect(r: Row): Prospect {
     phone: r.phone ?? undefined,
     email: r.email ?? undefined,
     city: r.city ?? undefined,
+    motivations: r.motivations ?? [],
     interestNotes: r.interest_notes ?? undefined,
     nextStep: r.next_step ?? undefined,
     nextStepDate: r.next_step_date ?? undefined,
@@ -64,6 +66,7 @@ function draftToRow(draft: ProspectDraft): Record<string, unknown> {
     phone: draft.phone ?? null,
     email: draft.email ?? null,
     city: draft.city ?? null,
+    motivations: draft.motivations ?? [],
     interest_notes: draft.interestNotes ?? null,
     next_step: draft.nextStep ?? null,
     next_step_date: draft.nextStepDate ?? null,
@@ -85,6 +88,7 @@ function patchToRow(patch: Partial<Prospect>): Record<string, unknown> {
     phone: "phone",
     email: "email",
     city: "city",
+    motivations: "motivations",
     interestNotes: "interest_notes",
     nextStep: "next_step",
     nextStepDate: "next_step_date",

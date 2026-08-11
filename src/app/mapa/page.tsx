@@ -10,7 +10,7 @@ import { LoadingScreen } from "../page";
 
 export default function MapaPage() {
   const { ready, prospects } = useProspects();
-  const { openCreate, openEdit } = useProspectForm();
+  const { openCreate, openDetail } = useProspectForm();
 
   const byKey = useMemo(() => {
     const map = new Map<string, Prospect[]>();
@@ -55,7 +55,7 @@ export default function MapaPage() {
                       <span className="w-full text-xs font-bold uppercase tracking-wide text-brand-700 sm:w-40 sm:shrink-0">{sub}</span>
                       <div className="flex flex-1 flex-wrap items-center gap-1.5">
                         {list.map((p) => (
-                          <button key={p.id} onClick={() => openEdit(p)} className="chip transition-all hover:scale-105" style={{ background: "rgba(255,255,255,.7)", borderColor: "rgba(37,99,235,.18)", color: "var(--ink)" }}>
+                          <button key={p.id} onClick={() => openDetail(p)} className="chip transition-all hover:scale-105" style={{ background: "rgba(255,255,255,.7)", borderColor: "rgba(37,99,235,.18)", color: "var(--ink)" }}>
                             {p.favorite && <span className="text-amber-500">★</span>}
                             {p.name}
                           </button>

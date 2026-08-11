@@ -1,7 +1,7 @@
 "use client";
 
 import type { Prospect } from "@/lib/types";
-import { CATEGORY_MAP } from "@/lib/taxonomy";
+import { getCategoryDef, MOTIVATION_OTHER } from "@/lib/taxonomy";
 import { useProspects } from "@/lib/store";
 import { GlassCard, IntimacyDots, StarRating, StatusBadge } from "./ui";
 import { useProspectForm } from "./shell";
@@ -14,8 +14,8 @@ export function ProspectCard({
   onDelete: (p: Prospect) => void;
 }) {
   const { toggleFavorite } = useProspects();
-  const { openEdit } = useProspectForm();
-  const cat = CATEGORY_MAP[prospect.category];
+  const { openEdit, openDetail } = useProspectForm();
+  const cat = getCategoryDef(prospect.category);
 
   const initials = prospect.name
     .split(" ")
@@ -26,6 +26,19 @@ export function ProspectCard({
 
   return (
     <GlassCard hover className="reveal group flex flex-col gap-3 p-4">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => openDetail(prospect)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openDetail(prospect);
+          }
+        }}
+        aria-label={`Ver detalhes de ${prospect.name}`}
+        className="flex cursor-pointer flex-col gap-3 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60"
+      >
       <div className="flex items-start gap-3">
         <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl font-display text-sm font-bold text-white" style={{ background: "linear-gradient(135deg,#2563eb,#60a5fa)" }}>
           {initials || "?"}
@@ -39,7 +52,7 @@ export function ProspectCard({
           </p>
         </div>
         <button
-          onClick={() => toggleFavorite(prospect.id)}
+          onClick={(e) => { e.stopPropagation(); toggleFavorite(prospect.id); }}
           className="shrink-0 transition-transform hover:scale-125"
           aria-label="Marcar como principal"
           title={prospect.favorite ? "Remover dos 5 principais" : "Marcar como um dos 5 principais"}
@@ -57,8 +70,25 @@ export function ProspectCard({
         <StatusBadge status={prospect.status} />
       </div>
 
-      {prospect.interestNotes && (
-        <p className="line-clamp-2 rounded-lg bg-white/45 px-3 py-2 text-xs text-ink-soft">💡 {prospect.interestNotes}</p>
+      {prospect.motivations?.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {prospect.motivations.map((m) => (
+            <span
+              key={m}
+              className="chip"
+              style={{
+                background: "rgba(219,234,254,.7)",
+                color: "var(--brand-700, #1d4ed8)",
+                borderColor: "rgba(37,99,235,.2)",
+              }}
+            >
+              {m}
+            </span>
+          ))}
+          {prospect.motivations.includes(MOTIVATION_OTHER) && prospect.interestNotes && (
+            <span className="w-full text-xs text-ink-soft">💡 {prospect.interestNotes}</span>
+          )}
+        </div>
       )}
 
       {prospect.nextStep && (
@@ -72,6 +102,7 @@ export function ProspectCard({
           )}
         </div>
       )}
+      </div>
 
       <div className="mt-1 flex items-center gap-2 border-t border-white/60 pt-3">
         {prospect.phone && (
@@ -79,8 +110,8 @@ export function ProspectCard({
             💬 WhatsApp
           </a>
         )}
-        <button className="btn btn-ghost !py-1.5 !text-xs" onClick={() => openEdit(prospect)}>Editar</button>
-        <button className="btn btn-ghost !py-1.5 !text-xs !text-ink-faint" onClick={() => onDelete(prospect)} title="Excluir" style={{ marginLeft: "auto" }}>
+        <button className="btn btn-ghost !py-1.5 !text-xs" onClick={(e) => { e.stopPropagation(); openEdit(prospect); }}>Editar</button>
+        <button className="btn btn-ghost !py-1.5 !text-xs !text-ink-faint" onClick={(e) => { e.stopPropagation(); onDelete(prospect); }} title="Excluir" aria-label="Excluir prospecto" style={{ marginLeft: "auto" }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>
         </button>
         {(prospect.history?.length ?? 0) > 0 && (

@@ -14,6 +14,7 @@ import { ProspectsProvider, useProspects } from "@/lib/store";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { ProspectForm } from "./prospect-form";
+import { ProspectDetail } from "./prospect-detail";
 import { LoginScreen } from "./login-screen";
 import { ConfirmDialog } from "./ui";
 
@@ -23,6 +24,7 @@ const CLOUD = isSupabaseConfigured();
 interface FormCtx {
   openCreate: (preset?: { category?: CategoryId; subcategory?: string }) => void;
   openEdit: (prospect: Prospect) => void;
+  openDetail: (prospect: Prospect) => void;
 }
 const FormController = createContext<FormCtx | null>(null);
 export function useProspectForm() {
@@ -88,21 +90,37 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Prospect | null>(null);
   const [preset, setPreset] = useState<{ category?: CategoryId; subcategory?: string }>();
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
   const openCreate = useCallback((p?: { category?: CategoryId; subcategory?: string }) => {
+    setDetailId(null);
     setEditing(null);
     setPreset(p);
     setFormOpen(true);
   }, []);
   const openEdit = useCallback((prospect: Prospect) => {
+    setDetailId(null);
     setEditing(prospect);
     setPreset(undefined);
     setFormOpen(true);
   }, []);
+  const openDetail = useCallback((prospect: Prospect) => {
+    setFormOpen(false);
+    setDetailId(prospect.id);
+  }, []);
 
-  const ctx = useMemo<FormCtx>(() => ({ openCreate, openEdit }), [openCreate, openEdit]);
+  // Resolve the detail target from live state so favorite/history changes reflect instantly.
+  const detailProspect = useMemo(
+    () => prospects.find((p) => p.id === detailId) ?? null,
+    [prospects, detailId],
+  );
+
+  const ctx = useMemo<FormCtx>(
+    () => ({ openCreate, openEdit, openDetail }),
+    [openCreate, openEdit, openDetail],
+  );
 
   return (
     <FormController.Provider value={ctx}>
@@ -157,6 +175,13 @@ function ShellInner({ children }: { children: React.ReactNode }) {
         onClose={() => setFormOpen(false)}
         onCreate={createProspect}
         onUpdate={updateProspect}
+      />
+
+      <ProspectDetail
+        open={detailId !== null}
+        prospect={detailProspect}
+        onClose={() => setDetailId(null)}
+        onEdit={(p) => { setDetailId(null); openEdit(p); }}
       />
 
       <ConfirmDialog
