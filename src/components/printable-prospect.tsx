@@ -1,5 +1,6 @@
 "use client";
 
+import { QRCodeSVG } from "qrcode.react";
 import type { Prospect } from "@/lib/types";
 import {
   getCategoryDef,
@@ -9,6 +10,21 @@ import {
   CHANNELS,
   MOTIVATION_OTHER,
 } from "@/lib/taxonomy";
+
+/**
+ * Builds a `wa.me` link from a free-form phone string.
+ * Keeps a leading Brazil code when it's already there (12-13 digits starting
+ * with "55"), otherwise prefixes "55". Returns null when there are no digits.
+ */
+function whatsappLink(phone: string): string | null {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return null;
+  const withCountry =
+    digits.startsWith("55") && (digits.length === 12 || digits.length === 13)
+      ? digits
+      : `55${digits}`;
+  return `https://wa.me/${withCountry}`;
+}
 
 function formatDate(iso: string | undefined): string {
   if (!iso) return "—";
@@ -56,14 +72,48 @@ export function PrintableProspect({ prospect }: { prospect: Prospect }) {
   const hasContact = Boolean(prospect.phone || prospect.email || prospect.city);
   const showOther =
     prospect.motivations?.includes(MOTIVATION_OTHER) && Boolean(prospect.interestNotes);
+  const waHref = prospect.phone ? whatsappLink(prospect.phone) : null;
 
   return (
     <article className="print-page break-inside-avoid p-8 text-black">
-      {/* Header */}
-      <header className="flex items-start justify-between border-b-2 border-black pb-3">
-        <div>
+      {/* Branded document header */}
+      <header className="flex items-center justify-between gap-4 border-b-2 border-black pb-3">
+        <div className="flex items-center gap-3">
+          <span className="grid h-11 w-11 shrink-0 place-items-center border-2 border-black text-black">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 3l6 2 5-2v14l-5 2-6-2-5 2V5l5-2z" />
+              <path d="M9 3v16M15 5v16" />
+            </svg>
+          </span>
+          <span className="leading-tight">
+            <span className="block font-display text-lg font-bold text-black">
+              Mapa de <span className="font-extrabold">Prospectos</span>
+            </span>
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              Ficha do prospecto
+            </span>
+          </span>
+        </div>
+        <div className="text-right text-[11px] text-slate-600">
+          <p>Emitido em</p>
+          <p className="font-semibold text-black">{formatDate(new Date().toISOString())}</p>
+        </div>
+      </header>
+
+      {/* Prospect identity + WhatsApp QR */}
+      <div className="mt-4 flex items-start justify-between gap-4">
+        <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
-            Mapa de Prospectos · Ficha individual
+            Ficha individual
           </p>
           <h1 className="mt-1 font-display text-3xl font-extrabold leading-tight text-black">
             {prospect.name}
@@ -72,11 +122,23 @@ export function PrintableProspect({ prospect }: { prospect: Prospect }) {
             {cat.icon} {cat.label} · {prospect.subcategory}
           </p>
         </div>
-        <div className="text-right text-[11px] text-slate-600">
-          <p>Emitido em</p>
-          <p className="font-semibold text-black">{formatDate(new Date().toISOString())}</p>
-        </div>
-      </header>
+        {waHref && (
+          <figure className="flex shrink-0 flex-col items-center gap-1">
+            <div className="border border-black p-1.5">
+              <QRCodeSVG
+                value={waHref}
+                size={110}
+                level="M"
+                fgColor="#000000"
+                bgColor="#ffffff"
+              />
+            </div>
+            <figcaption className="max-w-[128px] text-center text-[8px] font-semibold leading-tight text-slate-600">
+              Aponte a câmera para chamar no WhatsApp
+            </figcaption>
+          </figure>
+        )}
+      </div>
 
       {/* Key attributes */}
       <div className="mt-4 grid grid-cols-3 gap-0 border border-slate-300">
