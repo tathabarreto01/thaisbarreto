@@ -7,6 +7,23 @@ import { GlassCard, ProgressRing } from "@/components/ui";
 import { useProspectForm } from "@/components/shell";
 import { LoadingScreen } from "../page";
 
+/** Frases motivacionais para a conclusão do desafio (escolha determinística por semana). */
+const MOTIVATIONAL_QUOTES = [
+  "Cada “não” te aproxima do próximo “sim”. Siga firme!",
+  "Consistência vence intensidade — e você provou isso.",
+  "Grandes negócios nascem de conversas simples.",
+  "Você plantou esta semana; a colheita já está a caminho.",
+  "Disciplina é liberdade. Continue construindo o seu sonho.",
+  "O mapa cresce a cada nome. Que semana!",
+];
+
+function incentiveFor(overallPct: number): string {
+  if (overallPct <= 0) return "Vamos começar? O primeiro passo é o que mais importa.";
+  if (overallPct < 0.5) return "Bom começo! Mantenha esse ritmo.";
+  if (overallPct < 1) return "Você já passou da metade — falta pouco!";
+  return "Tudo pronto por aqui!";
+}
+
 export default function DesafioPage() {
   const { ready, prospects, challenge, saveChallenge } = useProspects();
   const { openCreate } = useProspectForm();
@@ -21,7 +38,11 @@ export default function DesafioPage() {
 
   const regPct = Math.min(1, registered / Math.max(1, challenge.goalCount));
   const contactPct = Math.min(1, stats.contactsThisWeek / Math.max(1, challenge.contactGoal));
-  const complete = regPct >= 1 && contactPct >= 1;
+  const regDone = registered >= challenge.goalCount;
+  const contactDone = stats.contactsThisWeek >= challenge.contactGoal;
+  const complete = regDone && contactDone;
+  const quote = MOTIVATIONAL_QUOTES[challenge.week % MOTIVATIONAL_QUOTES.length];
+  const incentive = incentiveFor((regPct + contactPct) / 2);
 
   async function save() {
     await saveChallenge({ ...challenge!, goalCount, contactGoal });
@@ -43,23 +64,29 @@ export default function DesafioPage() {
           <div className="flex flex-col items-center gap-2">
             <ProgressRing value={registered} max={challenge.goalCount} size={130} label={`${registered}/${challenge.goalCount}`} sub="prospectos" />
             <span className="text-sm font-semibold text-ink-soft">Registrar prospectos</span>
+            {regDone && <span className="font-hand text-base text-emerald-600">🎉 Meta de cadastros batida!</span>}
           </div>
           <div className="flex flex-col items-center gap-2">
             <ProgressRing value={stats.contactsThisWeek} max={challenge.contactGoal} size={130} label={`${stats.contactsThisWeek}/${challenge.contactGoal}`} sub="contatos" />
             <span className="text-sm font-semibold text-ink-soft">Fazer contatos</span>
+            {contactDone && <span className="font-hand text-base text-emerald-600">🎉 Meta de contatos batida!</span>}
           </div>
         </div>
 
         {complete ? (
-          <div className="mt-6 rounded-2xl p-4 text-center" style={{ background: "linear-gradient(135deg,rgba(34,197,94,.14),rgba(96,165,250,.14))" }}>
-            <p className="font-display text-lg font-bold text-ink">🎉 Desafio concluído!</p>
-            <p className="text-sm text-ink-soft">Excelente trabalho. Pronto para a próxima semana?</p>
+          <div className="mt-6 rounded-2xl p-5 text-center ring-1 ring-emerald-300/50" style={{ background: "linear-gradient(135deg,rgba(34,197,94,.18),rgba(96,165,250,.18))" }}>
+            <p className="font-display text-xl font-extrabold text-ink">🎉 Desafio concluído!</p>
+            <p className="font-hand mt-1 text-xl text-brand-600">{quote}</p>
+            <p className="mt-2 text-sm text-ink-soft">Excelente trabalho. Pronto para a próxima semana?</p>
             <button className="btn btn-primary mt-3" onClick={nextWeek}>Começar semana {challenge.week + 1} →</button>
           </div>
         ) : (
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <button className="btn btn-primary" onClick={() => openCreate()}>+ Registrar prospecto</button>
-            <button className="btn btn-ghost" onClick={nextWeek}>Avançar semana →</button>
+          <div className="mt-6 flex flex-col items-center gap-3">
+            <p className="font-hand text-xl text-brand-500">{incentive}</p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button className="btn btn-primary" onClick={() => openCreate()}>+ Registrar prospecto</button>
+              <button className="btn btn-ghost" onClick={nextWeek}>Avançar semana →</button>
+            </div>
           </div>
         )}
       </GlassCard>

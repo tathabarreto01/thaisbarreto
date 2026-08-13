@@ -199,6 +199,26 @@ export function ProspectDetail({
             </div>
           </div>
 
+          {/* Personal data */}
+          {(prospect.profession || prospect.maritalStatus) && (
+            <Section title="Dados pessoais">
+              <div className="flex flex-col gap-2">
+                {prospect.profession && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span aria-hidden="true">💼</span>
+                    <span className="font-semibold text-ink-soft">{prospect.profession}</span>
+                  </div>
+                )}
+                {prospect.maritalStatus && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span aria-hidden="true">💍</span>
+                    <span className="font-semibold text-ink-soft">{prospect.maritalStatus}</span>
+                  </div>
+                )}
+              </div>
+            </Section>
+          )}
+
           {/* Contact */}
           <Section title="Contato">
             {hasContact ? (
@@ -279,6 +299,15 @@ export function ProspectDetail({
                   </span>
                 )}
               </div>
+            </Section>
+          )}
+
+          {/* Observations */}
+          {prospect.observations && (
+            <Section title="Observações">
+              <p className="whitespace-pre-wrap rounded-xl bg-white/55 px-3 py-2 text-sm text-ink-soft">
+                {prospect.observations}
+              </p>
             </Section>
           )}
 

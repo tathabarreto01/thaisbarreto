@@ -56,8 +56,13 @@ async function getCities(): Promise<CityMatch[]> {
 }
 
 export async function GET(req: Request) {
-  const q = new URL(req.url).searchParams.get("q") ?? "";
-  const nq = norm(q);
+  const raw = new URL(req.url).searchParams.get("q") ?? "";
+  // Aceita o formato do rótulo "Cidade / UF" (ex.: "São Paulo / SP"): separa o
+  // nome da UF, para que selecionar uma sugestão continue sendo reconhecido.
+  const parts = raw.match(/^(.*?)\s*\/\s*([A-Za-zÀ-ÿ]{2})\s*$/);
+  const namePart = parts ? parts[1] : raw;
+  const ufPart = parts ? parts[2].toUpperCase() : null;
+  const nq = norm(namePart);
   if (nq.length < 2) {
     return NextResponse.json({ matches: [], exact: false } satisfies CityValidation);
   }
@@ -75,7 +80,8 @@ export async function GET(req: Request) {
   let exact = false;
   for (const c of cities) {
     const n = norm(c.name);
-    if (n === nq) exact = true;
+    const ufOk = !ufPart || c.uf.toUpperCase() === ufPart;
+    if (n === nq && ufOk) exact = true;
     if (n.startsWith(nq)) starts.push(c);
     else if (n.includes(nq)) contains.push(c);
   }

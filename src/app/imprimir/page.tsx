@@ -166,39 +166,42 @@ function SummarySheet({ prospects }: { prospects: Prospect[] }) {
         >
           Meus 5 principais
         </div>
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="text-left" style={{ background: "rgba(37,99,235,.08)" }}>
-              <th className="border border-brand-200 px-2 py-1.5 font-bold">Nome</th>
-              <th className="border border-brand-200 px-2 py-1.5 font-bold">Intimidade</th>
-              <th className="border border-brand-200 px-2 py-1.5 font-bold">Interesse</th>
-              <th className="border border-brand-200 px-2 py-1.5 font-bold">Fatores de motivação</th>
-              <th className="border border-brand-200 px-2 py-1.5 font-bold">Próximo passo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: Math.max(5, favorites.length) }).map((_, i) => {
-              const p = favorites[i];
-              return (
-                <tr key={i}>
-                  <td className="border border-brand-200 px-2 py-2 font-semibold text-ink">
-                    {p ? `${i + 1}. ${p.name}` : `${i + 1}.`}
-                  </td>
-                  <td className="border border-brand-200 px-2 py-2 text-ink-soft">
-                    {p ? getIntimacyDef(p.intimacy).label : ""}
-                  </td>
-                  <td className="border border-brand-200 px-2 py-2 text-amber-500">
-                    {p ? "★".repeat(p.interest) + "☆".repeat(5 - p.interest) : "☆☆☆☆☆"}
-                  </td>
-                  <td className="border border-brand-200 px-2 py-2 text-ink-soft">
-                    {p ? motivationsText(p) : ""}
-                  </td>
-                  <td className="border border-brand-200 px-2 py-2 text-ink-soft">{p?.nextStep ?? ""}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {favorites.map((p, i) => (
+            <div
+              key={p.id}
+              className="flex break-inside-avoid flex-col gap-2 rounded-xl border border-brand-300 p-3.5"
+            >
+              <div className="flex items-baseline gap-2 border-b border-brand-200 pb-2">
+                <span className="font-display text-base font-extrabold text-brand-700">{i + 1}.</span>
+                <span className="font-display text-base font-bold text-ink">{p.name}</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="block text-[10px] font-bold uppercase tracking-wide text-ink-faint">Intimidade</span>
+                  <span className="text-ink-soft">{getIntimacyDef(p.intimacy).label}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-bold uppercase tracking-wide text-ink-faint">Interesse</span>
+                  <span className="text-amber-500">
+                    {"★".repeat(p.interest) + "☆".repeat(5 - p.interest)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-sm">
+                <span className="block text-[10px] font-bold uppercase tracking-wide text-ink-faint">Fatores de motivação</span>
+                <span className="text-ink-soft">{motivationsText(p) || "—"}</span>
+              </div>
+
+              <div className="text-sm">
+                <span className="block text-[10px] font-bold uppercase tracking-wide text-ink-faint">Próximo passo</span>
+                <span className="text-ink-soft">{p.nextStep || "—"}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </GlassCard>
   );

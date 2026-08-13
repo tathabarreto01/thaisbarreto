@@ -6,7 +6,8 @@ export type CategoryId =
   | 'amigos'
   | 'redes'
   | 'comunidade'
-  | 'trabalho';
+  | 'trabalho'
+  | 'empresario_amway';
 
 export type Intimacy = 'muito_proximo' | 'conhecido' | 'prospecto_digital';
 
@@ -38,10 +39,13 @@ export interface Prospect {
   phone?: string;
   email?: string;
   city?: string;
+  profession?: string; // Profissão
+  maritalStatus?: string; // Estado Civil
   motivations: string[]; // "Fatores de Motivação" (múltipla escolha)
   interestNotes?: string; // texto livre quando "Outro" é marcado em motivations
   nextStep?: string; // "Próximo passo"
   nextStepDate?: string; // ISO date
+  observations?: string; // Observações (texto livre)
   favorite: boolean; // "Meus 5 principais"
 
   history: ContactLogEntry[];

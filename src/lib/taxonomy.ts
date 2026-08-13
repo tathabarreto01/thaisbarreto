@@ -55,6 +55,13 @@ export const CATEGORIES: CategoryDef[] = [
       'Contatos freelance',
     ],
   },
+  {
+    id: 'empresario_amway',
+    label: 'Empresário Amway',
+    icon: '💠',
+    hint: 'Empresários Amway na sua rede.',
+    subcategories: ['Ativo', 'Inativo', 'Novo', 'Outro'],
+  },
 ];
 
 export const CATEGORY_MAP: Record<CategoryId, CategoryDef> = Object.fromEntries(
@@ -93,8 +100,19 @@ export const MOTIVATIONS: string[] = [
 
 export const MOTIVATION_OTHER = 'Outro';
 
+// Estado civil — opções do dropdown.
+export const MARITAL_STATUS: string[] = [
+  'Solteiro(a)',
+  'Casado(a)',
+  'União estável',
+  'Divorciado(a)',
+  'Viúvo(a)',
+  'Prefiro não informar',
+];
+
 // "Próximo passo" — ações padrão sugeridas (dropdown).
 export const NEXT_STEPS: string[] = [
+  'Descobrir necessidade',
   'Agendar reunião online/presencial',
   'Mostrar produto',
   'Enviar materiais',

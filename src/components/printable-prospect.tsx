@@ -155,6 +155,19 @@ export function PrintableProspect({ prospect }: { prospect: Prospect }) {
         <Field label="Status" value={statusDef.label} />
       </div>
 
+      {/* Personal data */}
+      {(prospect.profession || prospect.maritalStatus) && (
+        <section className="mt-5">
+          <h2 className="mb-2 border-b border-slate-300 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+            Dados pessoais
+          </h2>
+          <div className="grid grid-cols-2 gap-0 border border-slate-300">
+            <Field label="Profissão" value={prospect.profession} />
+            <Field label="Estado civil" value={prospect.maritalStatus} />
+          </div>
+        </section>
+      )}
+
       {/* Contact */}
       <section className="mt-5">
         <h2 className="mb-2 border-b border-slate-300 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-600">
@@ -210,6 +223,16 @@ export function PrintableProspect({ prospect }: { prospect: Prospect }) {
           <p className="text-sm text-slate-500">Nenhum próximo passo definido.</p>
         )}
       </section>
+
+      {/* Observations */}
+      {prospect.observations && (
+        <section className="mt-5">
+          <h2 className="mb-2 border-b border-slate-300 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+            Observações
+          </h2>
+          <p className="whitespace-pre-wrap text-[13px] text-black">{prospect.observations}</p>
+        </section>
+      )}
 
       {/* History */}
       <section className="mt-5">

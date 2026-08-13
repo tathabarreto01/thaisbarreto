@@ -8,7 +8,7 @@ import type {
   Prospect,
   ProspectDraft,
 } from "@/lib/types";
-import { CATEGORIES, getCategoryDef, CHANNELS, STATUSES, MOTIVATIONS, MOTIVATION_OTHER, NEXT_STEPS } from "@/lib/taxonomy";
+import { CATEGORIES, getCategoryDef, CHANNELS, STATUSES, MOTIVATIONS, MOTIVATION_OTHER, NEXT_STEPS, MARITAL_STATUS } from "@/lib/taxonomy";
 import { useProspects } from "@/lib/store";
 import { useDebouncedValidation } from "@/lib/use-validation";
 import { Drawer, IntimacyPicker, StarRating } from "./ui";
@@ -140,10 +140,13 @@ type FormState = {
   phone: string;
   email: string;
   city: string;
+  profession: string;
+  maritalStatus: string;
   motivations: string[];
   interestNotes: string;
   nextStep: string;
   nextStepDate: string;
+  observations: string;
 };
 
 function blank(preset?: Props["preset"]): FormState {
@@ -158,10 +161,13 @@ function blank(preset?: Props["preset"]): FormState {
     phone: "",
     email: "",
     city: "",
+    profession: "",
+    maritalStatus: "",
     motivations: [],
     interestNotes: "",
     nextStep: "",
     nextStepDate: "",
+    observations: "",
   };
 }
 
@@ -176,10 +182,13 @@ function fromProspect(p: Prospect): FormState {
     phone: p.phone ?? "",
     email: p.email ?? "",
     city: p.city ?? "",
+    profession: p.profession ?? "",
+    maritalStatus: p.maritalStatus ?? "",
     motivations: p.motivations ?? [],
     interestNotes: p.interestNotes ?? "",
     nextStep: p.nextStep ?? "",
     nextStepDate: p.nextStepDate ? p.nextStepDate.slice(0, 10) : "",
+    observations: p.observations ?? "",
   };
 }
 
@@ -274,12 +283,15 @@ export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdat
       phone: form.phone.trim() || undefined,
       email: form.email.trim() || undefined,
       city: form.city.trim() || undefined,
+      profession: form.profession.trim() || undefined,
+      maritalStatus: form.maritalStatus || undefined,
       motivations: form.motivations,
       interestNotes: form.motivations.includes(MOTIVATION_OTHER)
         ? form.interestNotes.trim() || undefined
         : undefined,
       nextStep: form.nextStep.trim() || undefined,
       nextStepDate: form.nextStepDate ? new Date(form.nextStepDate).toISOString() : undefined,
+      observations: form.observations.trim() || undefined,
     }),
     [form],
   );
@@ -458,6 +470,30 @@ export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdat
             )}
           </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="label" htmlFor="prospect-profession">Profissão</label>
+            <input
+              id="prospect-profession"
+              name={`mp-profession-${uid}`}
+              className="field"
+              placeholder="Profissão"
+              value={form.profession}
+              onChange={(e) => set("profession", e.target.value)}
+              {...noAutofill}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="prospect-marital">Estado Civil</label>
+            <select id="prospect-marital" className="field" value={form.maritalStatus} onChange={(e) => set("maritalStatus", e.target.value)}>
+              <option value="">Selecione…</option>
+              {MARITAL_STATUS.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <div>
           <label className="label" htmlFor="prospect-email">E-mail</label>
           <input
@@ -537,6 +573,18 @@ export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdat
             <label className="label">Data</label>
             <input className="field" type="date" value={form.nextStepDate} onChange={(e) => set("nextStepDate", e.target.value)} />
           </div>
+        </div>
+
+        <div>
+          <label className="label" htmlFor="prospect-observations">Observações</label>
+          <textarea
+            id="prospect-observations"
+            className="field"
+            rows={3}
+            placeholder="Anotações livres sobre o prospecto…"
+            value={form.observations}
+            onChange={(e) => set("observations", e.target.value)}
+          />
         </div>
 
         {editing && <ContactHistory prospect={editing} />}
