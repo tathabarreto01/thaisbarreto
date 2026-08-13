@@ -143,26 +143,37 @@ function ShellInner({ children }: { children: React.ReactNode }) {
 
         {/* Main column */}
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* Topbar (mobile) */}
-          <header className="no-print sticky top-0 z-20 flex items-center justify-between gap-3 p-3 lg:hidden">
-            <div className="glass flex w-full items-center justify-between gap-3 px-3 py-2.5">
-              <Brand />
-              <button className="btn btn-ghost !px-2.5 !py-2" onClick={() => setMobileNav((v) => !v)} aria-label="Menu">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
-              </button>
-            </div>
-          </header>
-
-          {mobileNav && (
-            <div className="no-print fixed inset-0 z-30 lg:hidden">
-              <div className="absolute inset-0 bg-[#0b1c3f]/30 backdrop-blur-sm" onClick={() => setMobileNav(false)} />
-              <div className="glass-strong absolute left-3 right-3 top-3 p-4" style={{ animation: "floatUp .3s ease" }}>
-                <div className="mb-4 flex items-center justify-between"><Brand /><button className="btn btn-ghost !px-2.5 !py-2" onClick={() => setMobileNav(false)}>✕</button></div>
-                <button className="btn btn-primary mb-3 w-full" onClick={() => { setMobileNav(false); openCreate(); }}>+ Novo prospecto</button>
-                <NavItems onNavigate={() => setMobileNav(false)} />
+          {/* Topbar + menu dropdown (mobile) */}
+          <div className="no-print sticky top-0 z-30 lg:hidden">
+            {mobileNav && (
+              <div className="fixed inset-0 bg-[#0b1c3f]/30 backdrop-blur-sm" onClick={() => setMobileNav(false)} />
+            )}
+            <div className="p-3">
+              <div className="relative">
+                <div className="glass flex w-full items-center justify-between gap-3 px-3 py-2.5">
+                  <Brand />
+                  <button
+                    className="btn btn-ghost !px-2.5 !py-2"
+                    onClick={() => setMobileNav((v) => !v)}
+                    aria-label={mobileNav ? "Fechar menu" : "Abrir menu"}
+                    aria-expanded={mobileNav}
+                  >
+                    {mobileNav ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    )}
+                  </button>
+                </div>
+                {mobileNav && (
+                  <div className="glass-strong absolute left-0 right-0 top-full z-10 mt-2 p-3" style={{ animation: "floatUp .3s ease" }}>
+                    <button className="btn btn-primary mb-2 w-full" onClick={() => { setMobileNav(false); openCreate(); }}>+ Novo prospecto</button>
+                    <NavItems onNavigate={() => setMobileNav(false)} />
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
 
           <main className="flex-1 px-3 pb-16 pt-1 sm:px-5 lg:px-8 lg:pt-6">{children}</main>
         </div>
