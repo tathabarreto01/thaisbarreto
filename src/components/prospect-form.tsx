@@ -192,8 +192,24 @@ function fromProspect(p: Prospect): FormState {
   };
 }
 
-export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdate }: Props) {
-  const [form, setForm] = useState<FormState>(blank(preset));
+/**
+ * O conteúdo do formulário é remontado via `key` a cada abertura (e a cada alvo
+ * diferente), então o estado inicial nasce pronto no `useState` — sem efeito de
+ * reset. Fechado, nada é montado: reabrir nunca traz dados do anterior.
+ */
+export function ProspectForm(props: Props) {
+  if (!props.open) return null;
+  const { editing, preset } = props;
+  const key = editing
+    ? `edit:${editing.id}`
+    : `new:${preset?.category ?? ""}:${preset?.subcategory ?? ""}`;
+  return <ProspectFormContent key={key} {...props} />;
+}
+
+function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdate }: Props) {
+  const [form, setForm] = useState<FormState>(() =>
+    editing ? fromProspect(editing) : blank(preset),
+  );
   const [saving, setSaving] = useState(false);
 
   // Nome não-semântico e estável (SSR-safe) para o Chrome/gerenciadores de senha
@@ -208,11 +224,6 @@ export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdat
     "data-1p-ignore": "",
     "data-form-type": "other",
   } as const;
-
-  useEffect(() => {
-    if (!open) return;
-    setForm(editing ? fromProspect(editing) : blank(preset));
-  }, [open, editing, preset]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -362,7 +373,7 @@ export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdat
             {STATUSES.map((s) => {
               const active = s.id === form.status;
               return (
-                <button key={s.id} type="button" onClick={() => set("status", s.id)} className="chip" style={{ background: active ? s.bg : "var(--w55)", color: active ? s.color : "var(--ink-soft)", borderColor: active ? `${s.color}55` : "rgba(37,99,235,.15)", fontWeight: active ? 700 : 600 }}>{s.label}</button>
+                <button key={s.id} type="button" onClick={() => set("status", s.id)} className="chip" style={{ background: active ? s.bg : "var(--w55)", color: active ? s.color : "var(--ink-soft)", borderColor: active ? `${s.color}55` : "var(--chip-muted-border)", fontWeight: active ? 700 : 600 }}>{s.label}</button>
               );
             })}
           </div>
@@ -531,13 +542,7 @@ export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdat
                   type="button"
                   onClick={() => toggleMotivation(option)}
                   aria-pressed={active}
-                  className="chip cursor-pointer select-none"
-                  style={{
-                    background: active ? "rgba(219,234,254,.85)" : "var(--w55)",
-                    color: active ? "var(--brand-700)" : "var(--ink-soft)",
-                    borderColor: active ? "rgba(37,99,235,.4)" : "rgba(37,99,235,.15)",
-                    fontWeight: active ? 700 : 600,
-                  }}
+                  className={`chip cursor-pointer select-none ${active ? "chip-brand-strong" : "chip-muted"}`}
                 >
                   {active && <span aria-hidden="true">✓ </span>}
                   {option}

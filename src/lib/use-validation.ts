@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 
 /**
  * Estado de uma validação assistiva de campo.
@@ -24,10 +24,24 @@ interface Options<T> {
   fetcher: (value: string, signal: AbortSignal) => Promise<T>;
 }
 
+const IDLE = { status: "idle", data: null } as const;
+const LOADING = { status: "loading", data: null } as const;
+
+/** Última resposta recebida, marcada com o valor que a originou. */
+interface Settled<T> {
+  value: string;
+  /** `null` quando a requisição falhou (volta ao estado neutro). */
+  data: T | null;
+}
+
 /**
  * Busca de validação com debounce e proteção contra corrida de requisições.
  * Cada mudança de `value` cancela o timer e a requisição anterior via
  * `AbortController`, garantindo que apenas a resposta mais recente vença.
+ *
+ * O estado visível é derivado: enquanto a resposta guardada não corresponder ao
+ * `value` atual, o campo está em `loading` — assim nada precisa ser escrito no
+ * estado durante o efeito.
  */
 export function useDebouncedValidation<T>({
   value,
@@ -35,32 +49,25 @@ export function useDebouncedValidation<T>({
   delay = 450,
   fetcher,
 }: Options<T>): ValidationState<T> {
-  const [state, setState] = useState<ValidationState<T>>({ status: "idle", data: null });
+  const [settled, setSettled] = useState<Settled<T> | null>(null);
 
   // Mantém o fetcher fora das dependências do efeito (fetchers são puros por URL).
-  const fetcherRef = useRef(fetcher);
-  fetcherRef.current = fetcher;
+  const runFetch = useEffectEvent((v: string, signal: AbortSignal) => fetcher(v, signal));
 
   useEffect(() => {
-    if (!enabled) {
-      setState({ status: "idle", data: null });
-      return;
-    }
+    if (!enabled) return;
 
     const controller = new AbortController();
-    setState({ status: "loading", data: null });
-
     const timer = setTimeout(() => {
-      fetcherRef
-        .current(value, controller.signal)
+      runFetch(value, controller.signal)
         .then((data) => {
           if (controller.signal.aborted) return;
-          setState({ status: "done", data });
+          setSettled({ value, data });
         })
         .catch(() => {
           // Erro de rede ou requisição abortada: volta ao estado neutro.
           if (controller.signal.aborted) return;
-          setState({ status: "idle", data: null });
+          setSettled({ value, data: null });
         });
     }, delay);
 
@@ -70,5 +77,7 @@ export function useDebouncedValidation<T>({
     };
   }, [value, enabled, delay]);
 
-  return state;
+  if (!enabled) return IDLE;
+  if (!settled || settled.value !== value) return LOADING;
+  return settled.data === null ? IDLE : { status: "done", data: settled.data };
 }

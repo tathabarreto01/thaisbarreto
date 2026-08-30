@@ -3,6 +3,39 @@
 import { useEffect } from "react";
 import type { Intimacy, FunnelStatus } from "@/lib/types";
 import { INTIMACY, getIntimacyDef, getStatusDef, INTEREST_LABELS } from "@/lib/taxonomy";
+import { useTheme } from "@/lib/theme";
+
+/* ---------------- Theme toggle ---------------- */
+export function ThemeToggle() {
+  const { theme, mounted, toggleTheme } = useTheme();
+  const dark = theme === "dark";
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className="btn btn-ghost w-full !justify-start gap-2.5 !py-2.5"
+      aria-label={dark ? "Ativar modo claro" : "Ativar modo escuro"}
+      aria-pressed={mounted ? dark : undefined}
+      title={dark ? "Modo claro" : "Modo escuro"}
+    >
+      <span className="grid h-6 w-6 place-items-center" aria-hidden>
+        {mounted && dark ? (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+          </svg>
+        ) : (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        )}
+      </span>
+      <span className="text-[13px] font-semibold">
+        {mounted ? (dark ? "Modo claro" : "Modo escuro") : "Tema"}
+      </span>
+    </button>
+  );
+}
 
 /* ---------------- Glass card ---------------- */
 export function GlassCard({
@@ -104,7 +137,7 @@ export function IntimacyPicker({
             onClick={() => onChange(i.id)}
             className="chip transition-all"
             style={{
-              borderColor: active ? i.color : "rgba(37,99,235,0.15)",
+              borderColor: active ? i.color : "var(--chip-muted-border)",
               background: active ? `${i.color}1a` : "var(--w55)",
               color: active ? i.color : "var(--ink-soft)",
               fontWeight: active ? 700 : 600,

@@ -44,6 +44,25 @@
   --w60: rgba(255, 255, 255, 0.6);
   --w70: rgba(255, 255, 255, 0.7);
 
+  /* Chips de marca — tokenizados para adaptar ao tema */
+  --chip-brand-bg: rgba(219, 234, 254, 0.7);
+  --chip-brand-bg-strong: rgba(219, 234, 254, 0.9);
+  --chip-brand-fg: var(--brand-700);
+  --chip-brand-border: rgba(37, 99, 235, 0.2);
+  --chip-brand-border-strong: rgba(37, 99, 235, 0.4);
+  --chip-muted-border: rgba(37, 99, 235, 0.15);
+  --favorite-fg: #b45309;
+
+  /* Neumorphism (soft UI) — luz no topo-esquerda, sombra no baixo-direita.
+     Combinado com o glass: relevo suave sem matar a translucidez. */
+  --neu-light: rgba(255, 255, 255, 0.9);
+  --neu-dark: rgba(20, 48, 110, 0.16);
+  --neu-out: -7px -7px 16px var(--neu-light), 7px 7px 20px var(--neu-dark);
+  --neu-out-sm: -3px -3px 8px var(--neu-light), 3px 3px 9px var(--neu-dark);
+  --neu-out-xs: -1.5px -1.5px 4px var(--neu-light), 1.5px 1.5px 4px var(--neu-dark);
+  --neu-in: inset 2px 2px 6px var(--neu-dark), inset -2px -2px 6px var(--neu-light);
+  --neu-in-sm: inset 1.5px 1.5px 4px var(--neu-dark), inset -1.5px -1.5px 4px var(--neu-light);
+
   --radius: 22px;
 
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
@@ -140,7 +159,7 @@ body::after {
   backdrop-filter: blur(var(--glass-blur)) saturate(165%);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(165%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  box-shadow: var(--glass-shadow), var(--neu-out), inset 0 1px 0 rgba(255, 255, 255, 0.65);
   border-radius: var(--radius);
 }
 
@@ -150,7 +169,7 @@ body::after {
   backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(175%);
   -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(175%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  box-shadow: var(--glass-shadow-lg), var(--neu-out), inset 0 1px 0 rgba(255, 255, 255, 0.75);
   border-radius: var(--radius);
 }
 
@@ -175,7 +194,7 @@ body::after {
 }
 .glass-hover:hover {
   transform: translateY(-4px);
-  box-shadow: var(--glass-shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  box-shadow: var(--glass-shadow-lg), var(--neu-out), inset 0 1px 0 rgba(255, 255, 255, 0.75);
   background: var(--glass-bg-strong);
 }
 
@@ -227,9 +246,11 @@ body::after {
 .btn-primary {
   color: #fff;
   background: linear-gradient(135deg, var(--brand-600), var(--brand-500));
-  box-shadow: 0 12px 26px -12px rgba(37, 99, 235, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  box-shadow: 0 12px 26px -12px rgba(37, 99, 235, 0.8), var(--neu-out-sm), inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
-.btn-primary:hover { box-shadow: 0 18px 34px -12px rgba(37, 99, 235, 0.9); transform: translateY(-1px); }
+.btn-primary:hover { box-shadow: 0 18px 34px -12px rgba(37, 99, 235, 0.9), var(--neu-out-sm); transform: translateY(-1px); }
+/* Soft UI: o botão "afunda" ao ser pressionado */
+.btn-primary:active { box-shadow: inset 3px 3px 8px rgba(12, 34, 82, 0.5), inset -2px -2px 6px rgba(255, 255, 255, 0.3); }
 /* moving sheen */
 .btn-primary::before {
   content: "";
@@ -249,10 +270,13 @@ body::after {
   background: rgba(255, 255, 255, 0.5);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(8px);
+  box-shadow: var(--neu-out-sm);
 }
 .btn-ghost:hover { background: rgba(255, 255, 255, 0.82); transform: translateY(-1px); }
+.btn-ghost:active { box-shadow: var(--neu-in-sm); }
 
-.btn-danger { color: #b91c1c; background: rgba(254, 226, 226, 0.6); border: 1px solid rgba(248, 113, 113, 0.4); }
+.btn-danger { color: #b91c1c; background: rgba(254, 226, 226, 0.6); border: 1px solid rgba(248, 113, 113, 0.4); box-shadow: var(--neu-out-xs); }
+.btn-danger:active { box-shadow: var(--neu-in-sm); }
 .btn-danger:hover { background: rgba(254, 202, 202, 0.85); }
 
 /* ---------- Inputs ---------- */
@@ -264,6 +288,7 @@ body::after {
   padding: 0.64rem 0.9rem;
   font-size: 0.92rem;
   color: var(--ink);
+  box-shadow: var(--neu-in-sm);
   transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 .field::placeholder { color: var(--ink-faint); }
@@ -271,9 +296,34 @@ body::after {
   outline: none;
   border-color: var(--brand-500);
   background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.16);
+  box-shadow: var(--neu-in-sm), 0 0 0 4px rgba(59, 130, 246, 0.16);
 }
 select.field { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237183a6' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.7rem center; padding-right: 2.2rem; }
+
+/* Popup nativo de <select> e <input type="date">: o navegador desenha essa
+   lista fora do nosso CSS translúcido, então as <option> precisam de cor
+   SÓLIDA explícita — senão, no dark, texto claro cai sobre popup branco. */
+.field {
+  color-scheme: light;
+}
+select.field option,
+select.field optgroup {
+  background-color: #ffffff;
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .field {
+  color-scheme: dark;
+}
+:root[data-theme="dark"] select.field option,
+:root[data-theme="dark"] select.field optgroup {
+  background-color: #16233f;
+  color: #eaf1ff;
+}
+:root[data-theme="dark"] select.field option:checked {
+  background-color: #24406f;
+  color: #ffffff;
+}
 
 .label {
   display: block;
@@ -295,7 +345,83 @@ select.field { appearance: none; cursor: pointer; background-image: url("data:im
   padding: 0.24rem 0.62rem;
   border-radius: 999px;
   border: 1px solid transparent;
-  transition: transform 0.15s var(--ease-spring), background 0.2s ease;
+  box-shadow: var(--neu-out-xs);
+  transition: transform 0.15s var(--ease-spring), background 0.2s ease, box-shadow 0.2s ease;
+}
+button.chip:active { box-shadow: var(--neu-in-sm); }
+
+/* Chip de marca — substitui os estilos inline `rgba(219,234,254,…)`.
+   Todas as cores vêm de tokens, então o tema escuro se adapta sozinho. */
+.chip-brand {
+  background: var(--chip-brand-bg);
+  color: var(--chip-brand-fg);
+  border-color: var(--chip-brand-border);
+}
+.chip-brand-strong {
+  background: var(--chip-brand-bg-strong);
+  color: var(--chip-brand-fg);
+  border-color: var(--chip-brand-border-strong);
+  font-weight: 700;
+}
+.chip-muted {
+  background: var(--w55);
+  color: var(--ink-soft);
+  border-color: var(--chip-muted-border);
+}
+/* Variação maior, para o resumo do período na lista de prospectos */
+.chip-lg {
+  padding: 0.4rem 0.75rem;
+  font-weight: 700;
+}
+
+/* ---------- Neumorphism utilitário ---------- */
+.neu { box-shadow: var(--neu-out); }
+.neu-sm { box-shadow: var(--neu-out-sm); }
+.neu-inset { box-shadow: var(--neu-in); }
+
+/* ---------- Sidebar / menu nav items (relevo neumórfico no hover) ---------- */
+.nav-item {
+  color: var(--ink-soft);
+  background: transparent;
+  box-shadow: none;
+  transition: background 0.22s ease, color 0.22s ease,
+    box-shadow 0.28s var(--ease-spring), transform 0.18s var(--ease-spring);
+}
+.nav-item:hover {
+  color: var(--accent);
+  background: var(--w50);
+  box-shadow: var(--neu-out-sm);
+  transform: translateY(-1px);
+}
+.nav-item:active {
+  box-shadow: var(--neu-in-sm);
+  transform: translateY(0);
+}
+/* Item ativo: levemente "afundado" (pressionado), destacando a página atual */
+.nav-item.is-active {
+  color: var(--accent);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(96, 165, 250, 0.14));
+  box-shadow: var(--neu-in-sm), inset 0 0 0 1px rgba(37, 99, 235, 0.18);
+}
+.nav-item.is-active:hover {
+  box-shadow: var(--neu-out-sm), inset 0 0 0 1px rgba(37, 99, 235, 0.18);
+  transform: translateY(-1px);
+}
+
+/* Glifo do item */
+.nav-item .nav-icon {
+  background: var(--w60);
+  color: var(--ink-faint);
+  box-shadow: var(--neu-out-xs);
+  transition: background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
+}
+.nav-item:hover .nav-icon,
+.nav-item.is-active .nav-icon {
+  background: rgba(37, 99, 235, 0.16);
+  color: var(--accent);
+}
+.nav-item.is-active .nav-icon {
+  box-shadow: var(--neu-in-sm);
 }
 
 /* ---------- Scrollbar ---------- */
@@ -378,6 +504,21 @@ select.field { appearance: none; cursor: pointer; background-image: url("data:im
   --w55: rgba(255, 255, 255, 0.06);
   --w60: rgba(255, 255, 255, 0.07);
   --w70: rgba(255, 255, 255, 0.09);
+
+  /* Chips de marca — fill translúcido claro + texto azul-claro legível */
+  --chip-brand-bg: rgba(96, 165, 250, 0.16);
+  --chip-brand-bg-strong: rgba(96, 165, 250, 0.26);
+  --chip-brand-fg: var(--brand-200);
+  --chip-brand-border: rgba(255, 255, 255, 0.14);
+  --chip-brand-border-strong: rgba(147, 197, 253, 0.45);
+  --chip-muted-border: rgba(255, 255, 255, 0.1);
+  --favorite-fg: #fcd34d;
+
+  /* Neumorphism noturno: luz branca quase imperceptível, sombra preta forte */
+  --neu-light: rgba(255, 255, 255, 0.05);
+  --neu-dark: rgba(0, 0, 0, 0.55);
+  --neu-in: inset 2px 2px 6px rgba(0, 0, 0, 0.6), inset -2px -2px 6px rgba(255, 255, 255, 0.045);
+  --neu-in-sm: inset 1.5px 1.5px 4px rgba(0, 0, 0, 0.55), inset -1.5px -1.5px 4px rgba(255, 255, 255, 0.04);
 }
 
 /* Fundo noturno + auroras azuis mais sutis */
@@ -398,10 +539,11 @@ select.field { appearance: none; cursor: pointer; background-image: url("data:im
 
 /* Glass: sombra mais forte, brilho interno superior discreto */
 :root[data-theme="dark"] .glass {
-  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: var(--glass-shadow), var(--neu-out), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-:root[data-theme="dark"] .glass-strong {
-  box-shadow: var(--glass-shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+:root[data-theme="dark"] .glass-strong,
+:root[data-theme="dark"] .glass-hover:hover {
+  box-shadow: var(--glass-shadow-lg), var(--neu-out), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 /* Sheen do topo bem mais sutil no escuro */
 :root[data-theme="dark"] .glass::after,
@@ -452,6 +594,36 @@ select.field { appearance: none; cursor: pointer; background-image: url("data:im
   color: transparent;
 }
 
+/* ------------------------------------------------------------
+   Utilitários de marca do Tailwind no escuro.
+   As cores `brand-*` são calibradas para fundo claro; no escuro
+   precisam clarear (texto) e virar fills translúcidos (superfícies).
+   ------------------------------------------------------------ */
+:root[data-theme="dark"] .text-brand-700,
+:root[data-theme="dark"] .text-brand-600 {
+  color: var(--brand-300) !important;
+}
+:root[data-theme="dark"] .text-brand-500 {
+  color: var(--brand-400) !important;
+}
+:root[data-theme="dark"] .hover\:text-brand-700:hover {
+  color: var(--brand-200) !important;
+}
+:root[data-theme="dark"] .bg-brand-100,
+:root[data-theme="dark"] .bg-brand-100\/70,
+:root[data-theme="dark"] .bg-brand-50,
+:root[data-theme="dark"] .bg-brand-50\/70 {
+  background-color: rgba(96, 165, 250, 0.14) !important;
+}
+:root[data-theme="dark"] .hover\:bg-brand-50\/70:hover {
+  background-color: rgba(96, 165, 250, 0.12) !important;
+}
+:root[data-theme="dark"] .border-brand-200,
+:root[data-theme="dark"] .border-brand-300,
+:root[data-theme="dark"] .border-brand-100\/70 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
 /* Divisores e superfícies via classes utilitárias do Tailwind */
 :root[data-theme="dark"] .border-white\/60 {
   border-color: rgba(255, 255, 255, 0.1) !important;
@@ -483,6 +655,19 @@ select.field { appearance: none; cursor: pointer; background-image: url("data:im
 .print-only { display: none; }
 
 @media print {
+  /* Papel: sem relevo neumórfico nem sombras coloridas. */
+  :root,
+  :root[data-theme="dark"] {
+    --neu-light: transparent;
+    --neu-dark: transparent;
+    --neu-out: 0 0 0 rgba(0, 0, 0, 0);
+    --neu-out-sm: 0 0 0 rgba(0, 0, 0, 0);
+    --neu-out-xs: 0 0 0 rgba(0, 0, 0, 0);
+    --neu-in: 0 0 0 rgba(0, 0, 0, 0);
+    --neu-in-sm: 0 0 0 rgba(0, 0, 0, 0);
+  }
+  .btn, .field, .chip, .neu, .neu-sm, .neu-inset { box-shadow: none !important; }
+
   /* Fichas sempre em papel branco/preto legível — o dark mode não afeta a impressão. */
   :root[data-theme="dark"] {
     color-scheme: light;
@@ -490,10 +675,28 @@ select.field { appearance: none; cursor: pointer; background-image: url("data:im
     --ink-soft: #3a4a6b;
     --ink-faint: #7183a6;
     --accent: var(--brand-700);
+    --chip-brand-bg: rgba(219, 234, 254, 0.7);
+    --chip-brand-bg-strong: rgba(219, 234, 254, 0.9);
+    --chip-brand-fg: var(--brand-700);
+    --chip-brand-border: rgba(37, 99, 235, 0.2);
+    --chip-brand-border-strong: rgba(37, 99, 235, 0.4);
+    --chip-muted-border: rgba(37, 99, 235, 0.15);
+    --favorite-fg: #b45309;
   }
   :root[data-theme="dark"] body {
     background: #fff !important;
   }
+  /* Utilitários de marca voltam às cores de papel */
+  :root[data-theme="dark"] .text-brand-700 { color: var(--brand-700) !important; }
+  :root[data-theme="dark"] .text-brand-600 { color: var(--brand-600) !important; }
+  :root[data-theme="dark"] .text-brand-500 { color: var(--brand-500) !important; }
+  :root[data-theme="dark"] .bg-brand-100,
+  :root[data-theme="dark"] .bg-brand-100\/70,
+  :root[data-theme="dark"] .bg-brand-50,
+  :root[data-theme="dark"] .bg-brand-50\/70 { background-color: var(--brand-100) !important; }
+  :root[data-theme="dark"] .border-brand-200 { border-color: var(--brand-200) !important; }
+  :root[data-theme="dark"] .border-brand-300 { border-color: var(--brand-300) !important; }
+  :root[data-theme="dark"] .border-brand-100\/70 { border-color: var(--brand-100) !important; }
   :root[data-theme="dark"] .text-gradient {
     background: linear-gradient(135deg, var(--brand-700), var(--brand-500) 55%, var(--brand-400));
     -webkit-background-clip: text;

@@ -12,12 +12,12 @@ import {
 import type { CategoryId, Prospect } from "@/lib/types";
 import { ProspectsProvider, useProspects } from "@/lib/store";
 import { AuthProvider, useAuth } from "@/lib/auth";
-import { useTheme } from "@/lib/theme";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { ProspectForm } from "./prospect-form";
 import { ProspectDetail } from "./prospect-detail";
 import { LoginScreen } from "./login-screen";
-import { ConfirmDialog } from "./ui";
+import { SettingsPanel } from "./settings-panel";
+import { ConfirmDialog, ThemeToggle } from "./ui";
 
 const CLOUD = isSupabaseConfigured();
 
@@ -59,37 +59,6 @@ function Brand() {
   );
 }
 
-function ThemeToggle() {
-  const { theme, mounted, toggleTheme } = useTheme();
-  const dark = theme === "dark";
-  return (
-    <button
-      type="button"
-      onClick={toggleTheme}
-      className="btn btn-ghost w-full !justify-start gap-2.5 !py-2.5"
-      aria-label={dark ? "Ativar modo claro" : "Ativar modo escuro"}
-      aria-pressed={mounted ? dark : undefined}
-      title={dark ? "Modo claro" : "Modo escuro"}
-    >
-      <span className="grid h-6 w-6 place-items-center" aria-hidden>
-        {mounted && dark ? (
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-          </svg>
-        ) : (
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        )}
-      </span>
-      <span className="text-[13px] font-semibold">
-        {mounted ? (dark ? "Modo claro" : "Modo escuro") : "Tema"}
-      </span>
-    </button>
-  );
-}
-
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
@@ -101,14 +70,10 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            className="group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all"
-            style={{
-              background: active ? "linear-gradient(135deg,rgba(37,99,235,.14),rgba(96,165,250,.14))" : "transparent",
-              color: active ? "var(--accent)" : "var(--ink-soft)",
-              boxShadow: active ? "inset 0 0 0 1px rgba(37,99,235,.18)" : "none",
-            }}
+            aria-current={active ? "page" : undefined}
+            className={`nav-item group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold ${active ? "is-active" : ""}`}
           >
-            <span className="grid h-7 w-7 place-items-center rounded-lg text-[13px] transition-all" style={{ background: active ? "rgba(37,99,235,.16)" : "var(--w60)", color: active ? "var(--accent)" : "var(--ink-faint)" }}>{item.icon}</span>
+            <span className="nav-icon grid h-7 w-7 place-items-center rounded-lg text-[13px]" aria-hidden>{item.icon}</span>
             {item.label}
           </Link>
         );
@@ -125,6 +90,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const openCreate = useCallback((p?: { category?: CategoryId; subcategory?: string }) => {
     setDetailId(null);
@@ -141,6 +107,11 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   const openDetail = useCallback((prospect: Prospect) => {
     setFormOpen(false);
     setDetailId(prospect.id);
+  }, []);
+  const openSettings = useCallback(() => {
+    setFormOpen(false);
+    setDetailId(null);
+    setSettingsOpen(true);
   }, []);
 
   // Resolve the detail target from live state so favorite/history changes reflect instantly.
@@ -168,10 +139,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
             <NavItems />
             <div className="mt-auto flex flex-col gap-2">
               <ThemeToggle />
-              <SidebarFooter
-                empty={prospects.length === 0}
-                onClear={() => setConfirmReset(true)}
-              />
+              <SidebarFooter onOpenSettings={openSettings} />
             </div>
           </div>
         </aside>
@@ -204,8 +172,17 @@ function ShellInner({ children }: { children: React.ReactNode }) {
                   <div className="glass-strong absolute left-0 right-0 top-full z-10 mt-2 p-3" style={{ animation: "floatUp .3s ease" }}>
                     <button className="btn btn-primary mb-2 w-full" onClick={() => { setMobileNav(false); openCreate(); }}>+ Novo prospecto</button>
                     <NavItems onNavigate={() => setMobileNav(false)} />
-                    <div className="mt-2 border-t border-white/60 pt-2">
+                    <div className="mt-2 flex flex-col gap-1 border-t border-white/60 pt-2">
                       <ThemeToggle />
+                      <button
+                        type="button"
+                        className="btn btn-ghost w-full !justify-start gap-2.5 !py-2.5"
+                        onClick={() => { setMobileNav(false); openSettings(); }}
+                        aria-label="Abrir configurações"
+                      >
+                        <span className="grid h-6 w-6 place-items-center text-[15px]" aria-hidden>⚙️</span>
+                        <span className="text-[13px] font-semibold">Configurações</span>
+                      </button>
                     </div>
                   </div>
                 )}
@@ -233,6 +210,13 @@ function ShellInner({ children }: { children: React.ReactNode }) {
         onEdit={(p) => { setDetailId(null); openEdit(p); }}
       />
 
+      <SettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        empty={prospects.length === 0}
+        onClear={() => setConfirmReset(true)}
+      />
+
       <ConfirmDialog
         open={confirmReset}
         danger
@@ -246,23 +230,47 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SidebarFooter({ empty, onClear }: { empty: boolean; onClear: () => void }) {
+function SidebarFooter({ onOpenSettings }: { onOpenSettings: () => void }) {
   const auth = useAuth();
+  const settingsButton = (
+    <button
+      type="button"
+      className="btn btn-ghost shrink-0 !px-2.5 !py-1.5 !text-[13px]"
+      onClick={onOpenSettings}
+      aria-label="Configurações"
+      title="Configurações"
+    >
+      <span aria-hidden>⚙️</span>
+    </button>
+  );
+
   return (
     <div className="flex flex-col gap-2 rounded-xl px-3 py-3 text-[11px] leading-relaxed text-ink-faint" style={{ background: "var(--w40)" }}>
       {CLOUD ? (
-        <div className="flex items-center gap-2">
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-white" style={{ background: "linear-gradient(135deg,#2563eb,#60a5fa)" }}>
-            {(auth.user?.email?.[0] ?? "?").toUpperCase()}
-          </span>
-          <span className="min-w-0 flex-1 truncate font-semibold text-ink-soft" title={auth.user?.email ?? ""}>{auth.user?.email ?? "Conectado"}</span>
-          <button className="btn btn-ghost !px-2 !py-1 !text-[11px]" onClick={() => auth.signOut()} title="Sair">Sair</button>
-        </div>
+        <>
+          <div className="flex items-center gap-2">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-white" style={{ background: "linear-gradient(135deg,#2563eb,#60a5fa)" }} aria-hidden>
+              {(auth.user?.email?.[0] ?? "?").toUpperCase()}
+            </span>
+            <span className="min-w-0 flex-1 truncate font-semibold text-ink-soft" title={auth.user?.email ?? ""}>{auth.user?.email ?? "Conectado"}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {settingsButton}
+            <button
+              type="button"
+              className="btn btn-ghost flex-1 !px-2 !py-1.5 !text-[11px]"
+              onClick={() => auth.signOut()}
+              aria-label="Sair da conta"
+            >
+              Sair
+            </button>
+          </div>
+        </>
       ) : (
-        <span>💾 Dados salvos neste navegador. Modo local (sem login).</span>
-      )}
-      {!empty && (
-        <button className="btn btn-ghost !py-1 !text-[11px]" onClick={onClear}>🗑 Limpar todos os dados</button>
+        <>
+          <span>💾 Dados salvos neste navegador. Modo local (sem login).</span>
+          <div className="flex">{settingsButton}</div>
+        </>
       )}
     </div>
   );

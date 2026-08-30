@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useProspects } from "@/lib/store";
 import { computeStats, registeredThisWeek, spDateKey, spNowLabel, SP_TZ } from "@/lib/derive";
 import { getCategoryDef } from "@/lib/taxonomy";
@@ -20,10 +20,35 @@ function formatDayLong(key: string): string {
   return new Date(y, m - 1, d).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 }
 
-/** Rótulo curto: "12/08/2026". */
-function formatDayShort(key: string): string {
+/** Rótulo com dia da semana: "domingo, 30 de agosto de 2026". */
+function formatDayFull(key: string): string {
   const [y, m, d] = key.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("pt-BR");
+  return new Date(y, m - 1, d).toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/**
+ * Move uma chave `YYYY-MM-DD` em `delta` dias sem depender do fuso do
+ * dispositivo (a aritmética é feita em UTC, então nunca "pula" um dia).
+ */
+function shiftDayKey(key: string, delta: number): string {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + delta);
+  return dt.toISOString().slice(0, 10);
+}
+
+/** "30/08/2026 · 14:32" — data e hora do cadastro no fuso de São Paulo. */
+function formatRegisteredAt(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const date = d.toLocaleDateString("pt-BR", { timeZone: SP_TZ, day: "2-digit", month: "2-digit", year: "numeric" });
+  const time = d.toLocaleTimeString("pt-BR", { timeZone: SP_TZ, hour: "2-digit", minute: "2-digit" });
+  return `${date} · ${time}`;
 }
 
 function registrationTime(p: Prospect): number {
@@ -32,7 +57,7 @@ function registrationTime(p: Prospect): number {
 
 function RegistrationItem({ prospect, onOpen }: { prospect: Prospect; onOpen: (p: Prospect) => void }) {
   const cat = getCategoryDef(prospect.category);
-  const time = new Date(prospect.createdAt).toLocaleTimeString("pt-BR", { timeZone: SP_TZ, hour: "2-digit", minute: "2-digit" });
+  const stamp = formatRegisteredAt(prospect.createdAt);
   return (
     <button
       type="button"
@@ -40,9 +65,69 @@ function RegistrationItem({ prospect, onOpen }: { prospect: Prospect; onOpen: (p
       className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-brand-50/70"
     >
       <span className="text-xl" aria-hidden="true">{cat.icon}</span>
-      <span className="min-w-0 flex-1 truncate font-medium text-ink">{prospect.name}</span>
-      <span className="shrink-0 text-xs tabular-nums text-ink-faint">{time}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium text-ink">{prospect.name}</span>
+        <span className="mt-0.5 block text-[11px] tabular-nums text-ink-faint sm:hidden">Registrado em {stamp}</span>
+      </span>
+      <span className="hidden shrink-0 text-xs tabular-nums text-ink-faint sm:block" title={`Registrado em ${stamp}`}>
+        {stamp}
+      </span>
     </button>
+  );
+}
+
+/**
+ * Seletor de dia com navegação: ‹ [data] › · Hoje · Limpar.
+ * Quando `value` está vazio, a navegação parte do dia de hoje (SP).
+ */
+function DayNavigator({ id, value, today, onChange }: { id: string; value: string; today: string; onChange: (next: string) => void }) {
+  const base = value || today;
+  const atToday = base >= today;
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-2">
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          aria-label="Dia anterior"
+          title={value ? "Dia anterior" : "Ver o dia anterior a hoje"}
+          className="btn btn-ghost !px-3 !py-1.5 !text-sm"
+          onClick={() => onChange(shiftDayKey(base, -1))}
+        >
+          ‹
+        </button>
+        <input
+          id={id}
+          type="date"
+          max={today}
+          className="field !w-auto"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <button
+          type="button"
+          aria-label="Próximo dia"
+          title={atToday ? "Você já está no dia mais recente" : "Próximo dia"}
+          disabled={atToday}
+          className="btn btn-ghost !px-3 !py-1.5 !text-sm"
+          onClick={() => onChange(shiftDayKey(base, 1))}
+        >
+          ›
+        </button>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <button type="button" className="btn btn-ghost !py-1.5 !text-xs" onClick={() => onChange(today)}>
+          Hoje
+        </button>
+        <button
+          type="button"
+          className="btn btn-ghost !py-1.5 !text-xs"
+          disabled={!value}
+          onClick={() => onChange("")}
+        >
+          Limpar
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -72,7 +157,10 @@ export default function DesafioPage() {
   const [editing, setEditing] = useState(false);
   const [goalCount, setGoalCount] = useState(challenge?.goalCount ?? 15);
   const [contactGoal, setContactGoal] = useState(challenge?.contactGoal ?? 5);
-  const [filterDate, setFilterDate] = useState(() => spDateKey(new Date()));
+  const [today, setToday] = useState(() => spDateKey(new Date()));
+  const [filterDate, setFilterDate] = useState(today);
+  const groupsBoxRef = useRef<HTMLDivElement>(null);
+  const selectedGroupRef = useRef<HTMLElement>(null);
 
   /** Prospectos agrupados por dia LOCAL de cadastro, dias mais recentes primeiro. */
   const groupedByDay = useMemo(() => {
@@ -95,6 +183,20 @@ export default function DesafioPage() {
       .filter((p) => localDayKey(p.createdAt) === filterDate)
       .sort((a, b) => registrationTime(b) - registrationTime(a));
   }, [prospects, filterDate]);
+
+  /** Mantém "hoje" correto se a página ficar aberta durante a virada do dia. */
+  useEffect(() => {
+    const id = window.setInterval(() => setToday(spDateKey(new Date())), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  /** Rola a lista completa até o grupo do dia selecionado, sem mexer na página. */
+  useEffect(() => {
+    const box = groupsBoxRef.current;
+    const target = selectedGroupRef.current;
+    if (!box || !target) return;
+    box.scrollTo({ top: Math.max(0, target.offsetTop - box.offsetTop), behavior: "smooth" });
+  }, [filterDate, groupedByDay]);
 
   if (!ready || !challenge) return <LoadingScreen />;
 
@@ -119,8 +221,8 @@ export default function DesafioPage() {
         <p className="mt-1 text-xs text-ink-faint">
           O progresso abaixo conta apenas os cadastros e contatos <b className="text-ink-soft">desta semana</b> — ele zera a cada nova semana do calendário.
         </p>
-        <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-brand-100/70 px-3 py-1 text-xs font-semibold text-brand-700">
-          🗓️ {spNowLabel()} <span className="font-normal text-ink-faint">· horário de São Paulo</span>
+        <p className="chip chip-brand chip-lg mt-1.5">
+          🗓️ {spNowLabel()} <span className="font-normal text-ink-soft">· horário de São Paulo</span>
         </p>
       </header>
 
@@ -152,37 +254,22 @@ export default function DesafioPage() {
         )}
 
         <div className="mt-5 border-t border-brand-100/70 pt-4">
-          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+          <div className="flex flex-col items-center gap-2">
             <label className="label !mb-0" htmlFor="ver-cadastros-dia">Ver cadastros do dia</label>
-            <input
-              id="ver-cadastros-dia"
-              type="date"
-              className="field !w-auto"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-            />
-            <button
-              type="button"
-              className="btn btn-ghost !py-1.5 !text-xs"
-              onClick={() => setFilterDate(spDateKey(new Date()))}
-            >
-              Hoje
-            </button>
-            {filterDate && (
-              <button
-                type="button"
-                className="btn btn-ghost !py-1.5 !text-xs"
-                onClick={() => setFilterDate("")}
-              >
-                Limpar
-              </button>
-            )}
+            <DayNavigator id="ver-cadastros-dia" value={filterDate} today={today} onChange={setFilterDate} />
           </div>
-          {filterDate && (
-            <p className="mt-2 text-center text-xs text-ink-faint">
-              {filteredList.length} {filteredList.length === 1 ? "cadastro" : "cadastros"} em {formatDayShort(filterDate)} — detalhes em “Cadastros por data”.
-            </p>
-          )}
+          <p className="mt-2 text-center text-xs text-ink-faint">
+            {filterDate ? (
+              <>
+                <b className="text-ink-soft">
+                  {filteredList.length} {filteredList.length === 1 ? "cadastro" : "cadastros"}
+                </b>{" "}
+                em {formatDayFull(filterDate)} — detalhes em “Cadastros por data”.
+              </>
+            ) : (
+              <>Nenhum dia selecionado — use ‹ › ou “Hoje” para escolher uma data.</>
+            )}
+          </p>
         </div>
       </GlassCard>
 
@@ -223,64 +310,62 @@ export default function DesafioPage() {
             <h2 className="font-display font-bold text-ink">Cadastros por data</h2>
             <p className="mt-1 text-xs text-ink-faint">Escolha um dia ou veja todos os prospectos agrupados por data de cadastro.</p>
           </div>
-          <div className="flex items-end gap-2">
-            <div>
-              <label className="label" htmlFor="filtro-data">Filtrar por dia</label>
-              <input
-                id="filtro-data"
-                type="date"
-                className="field !w-auto"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-              />
-            </div>
-            <button
-              type="button"
-              className="btn btn-ghost !py-1.5 !text-xs"
-              onClick={() => setFilterDate(spDateKey(new Date()))}
-            >
-              Hoje
-            </button>
-            {filterDate && (
-              <button type="button" className="btn btn-ghost !py-1.5 !text-xs" onClick={() => setFilterDate("")}>Limpar</button>
-            )}
+          <div className="w-full sm:w-auto">
+            <label className="label" htmlFor="filtro-data">Filtrar por dia</label>
+            <DayNavigator id="filtro-data" value={filterDate} today={today} onChange={setFilterDate} />
           </div>
         </div>
 
-        {filterDate ? (
+        {filterDate && (
           <div className="mt-4">
             <p className="text-sm font-semibold text-ink-soft">
-              {filteredList.length} {filteredList.length === 1 ? "prospecto cadastrado" : "prospectos cadastrados"} em {formatDayShort(filterDate)}
+              {filteredList.length} {filteredList.length === 1 ? "prospecto cadastrado" : "prospectos cadastrados"} em {formatDayFull(filterDate)}
             </p>
             {filteredList.length === 0 ? (
-              <p className="mt-3 text-sm text-ink-faint">Nenhum prospecto cadastrado nesse dia.</p>
+              <p className="mt-2 text-sm text-ink-faint">
+                Nenhum prospecto cadastrado em {formatDayFull(filterDate)} — veja abaixo todos os cadastros por data.
+              </p>
             ) : (
-              <div className="mt-2 max-h-96 space-y-1 overflow-auto pr-1">
+              <div className="mt-2 max-h-72 space-y-1 overflow-auto pr-1">
                 {filteredList.map((p) => (
                   <RegistrationItem key={p.id} prospect={p} onOpen={openDetail} />
                 ))}
               </div>
             )}
           </div>
-        ) : groupedByDay.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-faint">Nenhum prospecto cadastrado ainda.</p>
-        ) : (
-          <div className="mt-4 max-h-96 space-y-4 overflow-auto pr-1">
-            {groupedByDay.map((group) => (
-              <div key={group.key}>
-                <div className="sticky top-0 mb-1 flex items-center gap-2 bg-transparent">
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">{formatDayLong(group.key)}</span>
-                  <span className="chip !py-0.5 !text-[11px]">{group.items.length}</span>
-                </div>
-                <div className="space-y-1">
-                  {group.items.map((p) => (
-                    <RegistrationItem key={p.id} prospect={p} onOpen={openDetail} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
         )}
+
+        <div className="mt-5 border-t border-brand-100/70 pt-4">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-faint">Todos os cadastros por dia</h3>
+          {groupedByDay.length === 0 ? (
+            <p className="mt-3 text-sm text-ink-faint">Nenhum prospecto cadastrado ainda.</p>
+          ) : (
+            <div ref={groupsBoxRef} className="mt-3 max-h-96 space-y-3 overflow-auto pr-1">
+              {groupedByDay.map((group) => {
+                const isSelected = group.key === filterDate;
+                return (
+                  <section
+                    key={group.key}
+                    ref={isSelected ? selectedGroupRef : undefined}
+                    aria-current={isSelected ? "date" : undefined}
+                    className={`scroll-mt-2 rounded-2xl px-2 py-2 transition-colors ${isSelected ? "bg-brand-50/70 ring-2 ring-brand-400/60" : ""}`}
+                  >
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">{formatDayLong(group.key)}</span>
+                      <span className="chip chip-brand !py-0.5 !text-[11px]">{group.items.length}</span>
+                      {isSelected && <span className="chip chip-brand-strong !py-0.5 !text-[11px]">Dia selecionado</span>}
+                    </div>
+                    <div className="space-y-1">
+                      {group.items.map((p) => (
+                        <RegistrationItem key={p.id} prospect={p} onOpen={openDetail} />
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </GlassCard>
     </div>
   );

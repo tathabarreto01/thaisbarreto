@@ -100,11 +100,7 @@ export default function Top5Page() {
                   {motivations.length > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
                       {motivations.map((m, i) => (
-                        <span
-                          key={`${m}-${i}`}
-                          className="chip"
-                          style={{ background: "rgba(219,234,254,.7)", color: "var(--brand-700, #1d4ed8)", borderColor: "rgba(37,99,235,.2)" }}
-                        >
+                        <span key={`${m}-${i}`} className="chip chip-brand">
                           {m}
                         </span>
                       ))}

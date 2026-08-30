@@ -23,14 +23,12 @@ interface AuthValue {
 const AuthContext = createContext<AuthValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [loading, setLoading] = useState(true);
+  // Sem Supabase (modo local) não há sessão a carregar: já começa pronto.
+  const [loading, setLoading] = useState(isSupabaseConfigured);
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    if (!isSupabaseConfigured()) {
-      setLoading(false);
-      return;
-    }
+    if (!isSupabaseConfigured()) return;
     const supabase = getSupabase();
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);

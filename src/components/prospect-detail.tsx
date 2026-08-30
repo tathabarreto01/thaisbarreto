@@ -265,15 +265,7 @@ export function ProspectDetail({
             <Section title="Fatores de motivação">
               <div className="flex flex-wrap gap-1.5">
                 {prospect.motivations.map((m) => (
-                  <span
-                    key={m}
-                    className="chip"
-                    style={{
-                      background: "rgba(219,234,254,.7)",
-                      color: "var(--brand-700, #1d4ed8)",
-                      borderColor: "rgba(37,99,235,.2)",
-                    }}
-                  >
+                  <span key={m} className="chip chip-brand">
                     {m}
                   </span>
                 ))}
