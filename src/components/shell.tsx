@@ -12,6 +12,7 @@ import {
 import type { CategoryId, Prospect } from "@/lib/types";
 import { ProspectsProvider, useProspects } from "@/lib/store";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { ProspectForm } from "./prospect-form";
 import { ProspectDetail } from "./prospect-detail";
@@ -58,6 +59,37 @@ function Brand() {
   );
 }
 
+function ThemeToggle() {
+  const { theme, mounted, toggleTheme } = useTheme();
+  const dark = theme === "dark";
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className="btn btn-ghost w-full !justify-start gap-2.5 !py-2.5"
+      aria-label={dark ? "Ativar modo claro" : "Ativar modo escuro"}
+      aria-pressed={mounted ? dark : undefined}
+      title={dark ? "Modo claro" : "Modo escuro"}
+    >
+      <span className="grid h-6 w-6 place-items-center" aria-hidden>
+        {mounted && dark ? (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+          </svg>
+        ) : (
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        )}
+      </span>
+      <span className="text-[13px] font-semibold">
+        {mounted ? (dark ? "Modo claro" : "Modo escuro") : "Tema"}
+      </span>
+    </button>
+  );
+}
+
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
@@ -72,11 +104,11 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
             className="group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all"
             style={{
               background: active ? "linear-gradient(135deg,rgba(37,99,235,.14),rgba(96,165,250,.14))" : "transparent",
-              color: active ? "var(--brand-700)" : "var(--ink-soft)",
+              color: active ? "var(--accent)" : "var(--ink-soft)",
               boxShadow: active ? "inset 0 0 0 1px rgba(37,99,235,.18)" : "none",
             }}
           >
-            <span className="grid h-7 w-7 place-items-center rounded-lg text-[13px] transition-all" style={{ background: active ? "rgba(37,99,235,.16)" : "rgba(255,255,255,.6)", color: active ? "var(--brand-700)" : "var(--ink-faint)" }}>{item.icon}</span>
+            <span className="grid h-7 w-7 place-items-center rounded-lg text-[13px] transition-all" style={{ background: active ? "rgba(37,99,235,.16)" : "var(--w60)", color: active ? "var(--accent)" : "var(--ink-faint)" }}>{item.icon}</span>
             {item.label}
           </Link>
         );
@@ -134,10 +166,13 @@ function ShellInner({ children }: { children: React.ReactNode }) {
               Novo prospecto
             </button>
             <NavItems />
-            <SidebarFooter
-              empty={prospects.length === 0}
-              onClear={() => setConfirmReset(true)}
-            />
+            <div className="mt-auto flex flex-col gap-2">
+              <ThemeToggle />
+              <SidebarFooter
+                empty={prospects.length === 0}
+                onClear={() => setConfirmReset(true)}
+              />
+            </div>
           </div>
         </aside>
 
@@ -169,6 +204,9 @@ function ShellInner({ children }: { children: React.ReactNode }) {
                   <div className="glass-strong absolute left-0 right-0 top-full z-10 mt-2 p-3" style={{ animation: "floatUp .3s ease" }}>
                     <button className="btn btn-primary mb-2 w-full" onClick={() => { setMobileNav(false); openCreate(); }}>+ Novo prospecto</button>
                     <NavItems onNavigate={() => setMobileNav(false)} />
+                    <div className="mt-2 border-t border-white/60 pt-2">
+                      <ThemeToggle />
+                    </div>
                   </div>
                 )}
               </div>
@@ -211,7 +249,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
 function SidebarFooter({ empty, onClear }: { empty: boolean; onClear: () => void }) {
   const auth = useAuth();
   return (
-    <div className="mt-auto flex flex-col gap-2 rounded-xl px-3 py-3 text-[11px] leading-relaxed text-ink-faint" style={{ background: "rgba(255,255,255,.4)" }}>
+    <div className="flex flex-col gap-2 rounded-xl px-3 py-3 text-[11px] leading-relaxed text-ink-faint" style={{ background: "var(--w40)" }}>
       {CLOUD ? (
         <div className="flex items-center gap-2">
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-white" style={{ background: "linear-gradient(135deg,#2563eb,#60a5fa)" }}>

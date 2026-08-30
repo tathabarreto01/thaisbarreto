@@ -32,6 +32,18 @@
   --glass-shadow-lg: 0 30px 70px -24px rgba(20, 48, 110, 0.5), 0 6px 16px -8px rgba(20, 48, 110, 0.22);
   --glass-blur: 20px;
 
+  /* Interactive accent text (kept dark on light surfaces) */
+  --accent: var(--brand-700);
+
+  /* Translucent white fills used inline across the app.
+     Tokenised so dark mode can flip them to low-alpha lights. */
+  --w40: rgba(255, 255, 255, 0.4);
+  --w45: rgba(255, 255, 255, 0.45);
+  --w50: rgba(255, 255, 255, 0.5);
+  --w55: rgba(255, 255, 255, 0.55);
+  --w60: rgba(255, 255, 255, 0.6);
+  --w70: rgba(255, 255, 255, 0.7);
+
   --radius: 22px;
 
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
@@ -336,12 +348,157 @@ select.field { appearance: none; cursor: pointer; background-image: url("data:im
   body::before, body::after { animation: none !important; }
 }
 
+/* ============================================================
+   DARK MODE — glassmorphism noturno (azul-marinho / noite)
+   Ativado por <html data-theme="dark">. Modo claro = padrão.
+   ============================================================ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Text — quase branco frio, com hierarquia azul-acinzentada */
+  --ink: #eaf1ff;
+  --ink-soft: #b3c1e0;
+  --ink-faint: #7e8fb6;
+
+  /* Accent clareado para contraste sobre superfícies escuras */
+  --accent: var(--brand-300);
+
+  /* Glass — superfícies escuras translúcidas */
+  --glass-bg: rgba(20, 31, 60, 0.5);
+  --glass-bg-strong: rgba(24, 37, 70, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-ring: rgba(96, 165, 250, 0.18);
+  --glass-shadow: 0 14px 38px -14px rgba(0, 0, 0, 0.72), 0 2px 8px -4px rgba(0, 0, 0, 0.5);
+  --glass-shadow-lg: 0 34px 78px -24px rgba(0, 0, 0, 0.82), 0 6px 18px -8px rgba(0, 0, 0, 0.55);
+
+  /* Fills translúcidos → luzes de baixíssima opacidade */
+  --w40: rgba(255, 255, 255, 0.035);
+  --w45: rgba(255, 255, 255, 0.04);
+  --w50: rgba(255, 255, 255, 0.05);
+  --w55: rgba(255, 255, 255, 0.06);
+  --w60: rgba(255, 255, 255, 0.07);
+  --w70: rgba(255, 255, 255, 0.09);
+}
+
+/* Fundo noturno + auroras azuis mais sutis */
+:root[data-theme="dark"] body {
+  background-color: #0a1020;
+  background-image:
+    radial-gradient(60rem 60rem at 8% -10%, rgba(37, 99, 235, 0.28), transparent 55%),
+    radial-gradient(55rem 55rem at 100% 0%, rgba(29, 78, 216, 0.24), transparent 50%),
+    radial-gradient(50rem 50rem at 50% 120%, rgba(59, 130, 246, 0.22), transparent 55%),
+    linear-gradient(180deg, #0b1224 0%, #0a1020 45%, #0b1526 100%);
+}
+:root[data-theme="dark"] body::before {
+  background: radial-gradient(circle at 30% 30%, rgba(37, 99, 235, 0.32), transparent 70%);
+}
+:root[data-theme="dark"] body::after {
+  background: radial-gradient(circle at 60% 60%, rgba(29, 78, 216, 0.3), transparent 70%);
+}
+
+/* Glass: sombra mais forte, brilho interno superior discreto */
+:root[data-theme="dark"] .glass {
+  box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+:root[data-theme="dark"] .glass-strong {
+  box-shadow: var(--glass-shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+/* Sheen do topo bem mais sutil no escuro */
+:root[data-theme="dark"] .glass::after,
+:root[data-theme="dark"] .glass-strong::after {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 40%);
+  opacity: 0.4;
+}
+
+/* Campos de formulário escuros */
+:root[data-theme="dark"] .field {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+:root[data-theme="dark"] .field:focus {
+  border-color: var(--brand-400);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.24);
+}
+
+/* Botão fantasma escuro */
+:root[data-theme="dark"] .btn-ghost {
+  color: var(--brand-200);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+:root[data-theme="dark"] .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Botão de perigo legível no escuro */
+:root[data-theme="dark"] .btn-danger {
+  color: #fca5a5;
+  background: rgba(153, 27, 27, 0.28);
+  border-color: rgba(248, 113, 113, 0.35);
+}
+:root[data-theme="dark"] .btn-danger:hover {
+  background: rgba(153, 27, 27, 0.45);
+}
+
+/* Label / gradiente de texto clareados */
+:root[data-theme="dark"] .label {
+  color: var(--brand-300);
+}
+:root[data-theme="dark"] .text-gradient {
+  background: linear-gradient(135deg, var(--brand-300), var(--brand-400) 55%, var(--brand-200));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Divisores e superfícies via classes utilitárias do Tailwind */
+:root[data-theme="dark"] .border-white\/60 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+:root[data-theme="dark"] .bg-white\/50,
+:root[data-theme="dark"] .bg-white\/55 {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Seleção de texto no escuro */
+:root[data-theme="dark"] ::selection {
+  background: rgba(96, 165, 250, 0.3);
+  color: #eaf1ff;
+}
+
+/* Scrollbar clareada */
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(147, 197, 253, 0.22);
+  background-clip: content-box;
+}
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 197, 253, 0.38);
+  background-clip: content-box;
+}
+
 /* ---------- Print (ficha) ---------- */
 /* On screen the print-only container is hidden; it renders exactly the
    sheets that should come out of the printer (controlled by React state). */
 .print-only { display: none; }
 
 @media print {
+  /* Fichas sempre em papel branco/preto legível — o dark mode não afeta a impressão. */
+  :root[data-theme="dark"] {
+    color-scheme: light;
+    --ink: #0d1b3e;
+    --ink-soft: #3a4a6b;
+    --ink-faint: #7183a6;
+    --accent: var(--brand-700);
+  }
+  :root[data-theme="dark"] body {
+    background: #fff !important;
+  }
+  :root[data-theme="dark"] .text-gradient {
+    background: linear-gradient(135deg, var(--brand-700), var(--brand-500) 55%, var(--brand-400));
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
   body { background: #fff !important; }
   body::before, body::after { display: none; }
   .no-print { display: none !important; }

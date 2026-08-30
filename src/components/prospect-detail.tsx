@@ -178,7 +178,7 @@ export function ProspectDetail({
           </header>
 
           {/* Status row */}
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl px-4 py-3" style={{ background: "rgba(255,255,255,.45)" }}>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl px-4 py-3" style={{ background: "var(--w45)" }}>
             <div className="flex flex-col gap-1">
               <span className="text-[11px] font-bold uppercase tracking-wide text-ink-faint">Intimidade</span>
               <span className="flex items-center gap-2">

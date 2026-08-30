@@ -83,7 +83,7 @@ export default function DashboardPage() {
           <h2 className="mb-3 font-display font-bold text-ink">Funil</h2>
           <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
             {stats.byStatus.map((s) => (
-              <div key={s.id} className="rounded-xl p-3 text-center" style={{ background: "rgba(255,255,255,.5)" }}>
+              <div key={s.id} className="rounded-xl p-3 text-center" style={{ background: "var(--w50)" }}>
                 <div className="font-display text-2xl font-extrabold" style={{ color: s.color }}>{s.count}</div>
                 <div className="mt-0.5 text-[11px] font-semibold text-ink-faint">{s.label}</div>
               </div>

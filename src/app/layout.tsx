@@ -28,15 +28,22 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2563eb",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#2563eb" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
+
+// Applied before paint to avoid a theme flash / hydration mismatch.
+const themeInit = `(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}if(t==='dark'){document.documentElement.dataset.theme='dark';}}catch(e){}})();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="pt-BR" className={`${display.variable} ${body.variable} ${hand.variable} h-full`} suppressHydrationWarning>
       <body className="min-h-full" suppressHydrationWarning>
+        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
         <AppShell>{children}</AppShell>
       </body>
     </html>

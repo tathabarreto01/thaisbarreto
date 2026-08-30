@@ -168,7 +168,7 @@ export default function ProspectosPage() {
               <option key={p} value={p}>🗓️ {PERIOD_LABELS[p]}</option>
             ))}
           </select>
-          <button onClick={() => setFavOnly((v) => !v)} className="chip transition-all" style={{ background: favOnly ? "rgba(245,158,11,.16)" : "rgba(255,255,255,.55)", color: favOnly ? "#b45309" : "var(--ink-soft)", borderColor: favOnly ? "rgba(245,158,11,.4)" : "rgba(37,99,235,.15)", fontWeight: 700, cursor: "pointer", padding: "0.4rem 0.75rem" }}>★ Só principais</button>
+          <button onClick={() => setFavOnly((v) => !v)} className="chip transition-all" style={{ background: favOnly ? "rgba(245,158,11,.16)" : "var(--w55)", color: favOnly ? "#b45309" : "var(--ink-soft)", borderColor: favOnly ? "rgba(245,158,11,.4)" : "rgba(37,99,235,.15)", fontWeight: 700, cursor: "pointer", padding: "0.4rem 0.75rem" }}>★ Só principais</button>
           {activeFilters > 0 && <button className="btn btn-ghost !py-1.5 !text-xs" onClick={clearFilters}>Limpar filtros ({activeFilters})</button>}
         </div>
 

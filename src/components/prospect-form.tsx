@@ -351,7 +351,7 @@ export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdat
           <IntimacyPicker value={form.intimacy} onChange={(v) => set("intimacy", v)} />
         </div>
 
-        <div className="flex items-center justify-between rounded-2xl px-4 py-3" style={{ background: "rgba(255,255,255,.45)" }}>
+        <div className="flex items-center justify-between rounded-2xl px-4 py-3" style={{ background: "var(--w45)" }}>
           <span className="label !mb-0">Nível de interesse</span>
           <StarRating value={form.interest} onChange={(v) => set("interest", v)} size={26} />
         </div>
@@ -362,7 +362,7 @@ export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdat
             {STATUSES.map((s) => {
               const active = s.id === form.status;
               return (
-                <button key={s.id} type="button" onClick={() => set("status", s.id)} className="chip" style={{ background: active ? s.bg : "rgba(255,255,255,.55)", color: active ? s.color : "var(--ink-soft)", borderColor: active ? `${s.color}55` : "rgba(37,99,235,.15)", fontWeight: active ? 700 : 600 }}>{s.label}</button>
+                <button key={s.id} type="button" onClick={() => set("status", s.id)} className="chip" style={{ background: active ? s.bg : "var(--w55)", color: active ? s.color : "var(--ink-soft)", borderColor: active ? `${s.color}55` : "rgba(37,99,235,.15)", fontWeight: active ? 700 : 600 }}>{s.label}</button>
               );
             })}
           </div>
@@ -533,8 +533,8 @@ export function ProspectForm({ open, editing, preset, onClose, onCreate, onUpdat
                   aria-pressed={active}
                   className="chip cursor-pointer select-none"
                   style={{
-                    background: active ? "rgba(219,234,254,.85)" : "rgba(255,255,255,.55)",
-                    color: active ? "var(--brand-700, #1d4ed8)" : "var(--ink-soft)",
+                    background: active ? "rgba(219,234,254,.85)" : "var(--w55)",
+                    color: active ? "var(--brand-700)" : "var(--ink-soft)",
                     borderColor: active ? "rgba(37,99,235,.4)" : "rgba(37,99,235,.15)",
                     fontWeight: active ? 700 : 600,
                   }}
@@ -614,7 +614,7 @@ function ContactHistory({ prospect }: { prospect: Prospect }) {
   const history = prospect.history ?? [];
 
   return (
-    <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,.4)" }}>
+    <div className="rounded-2xl p-4" style={{ background: "var(--w40)" }}>
       <div className="label">Histórico de contatos</div>
       <div className="flex items-end gap-2">
         <select className="field !w-auto" value={channel} onChange={(e) => setChannel(e.target.value as ContactLogEntry["channel"])}>

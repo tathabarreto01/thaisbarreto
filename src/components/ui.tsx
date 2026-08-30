@@ -105,7 +105,7 @@ export function IntimacyPicker({
             className="chip transition-all"
             style={{
               borderColor: active ? i.color : "rgba(37,99,235,0.15)",
-              background: active ? `${i.color}1a` : "rgba(255,255,255,0.55)",
+              background: active ? `${i.color}1a` : "var(--w55)",
               color: active ? i.color : "var(--ink-soft)",
               fontWeight: active ? 700 : 600,
             }}

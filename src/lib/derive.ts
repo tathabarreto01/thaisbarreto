@@ -20,16 +20,48 @@ const CONTACTED_STATUSES: FunnelStatus[] = [
   "fechado",
 ];
 
-function startOfWeek(d = new Date()): Date {
-  const date = new Date(d);
-  const day = (date.getDay() + 6) % 7; // Monday = 0
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() - day);
-  return date;
+/* ============================================================
+   Fuso de São Paulo — toda a lógica de dia/semana do Desafio é
+   ancorada em America/Sao_Paulo, independente do fuso do dispositivo.
+   Trabalhamos com chaves "YYYY-MM-DD" (comparáveis por string).
+   ============================================================ */
+export const SP_TZ = "America/Sao_Paulo";
+
+const spDayFmt = new Intl.DateTimeFormat("en-CA", {
+  timeZone: SP_TZ,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** "YYYY-MM-DD" do instante, no fuso de São Paulo. */
+export function spDateKey(value: string | Date): string {
+  const d = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(d.getTime())) return "";
+  return spDayFmt.format(d);
+}
+
+/** Segunda-feira da semana atual em SP, como "YYYY-MM-DD". */
+export function spWeekStartKey(now: Date = new Date()): string {
+  const today = spDateKey(now);
+  const [y, m, d] = today.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  const dow = (dt.getUTCDay() + 6) % 7; // segunda = 0
+  dt.setUTCDate(dt.getUTCDate() - dow);
+  return dt.toISOString().slice(0, 10);
+}
+
+/** Data/hora atuais em SP (para exibição). */
+export function spNowLabel(): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: SP_TZ,
+    dateStyle: "full",
+    timeStyle: "short",
+  }).format(new Date());
 }
 
 export function computeStats(prospects: Prospect[]): Stats {
-  const weekStart = startOfWeek().getTime();
+  const weekStart = spWeekStartKey();
 
   const byCategory = CATEGORIES.map((c) => ({
     id: c.id,
@@ -49,14 +81,14 @@ export function computeStats(prospects: Prospect[]): Stats {
     (n) => prospects.filter((p) => p.interest === n).length,
   );
 
-  // "Fazer contatos": conta prospectos que estão em status de contato (Contatado
-  // ou além no funil) e que foram CADASTRADOS nesta semana — ancorado na data de
-  // cadastro (createdAt), igual ao "Registrar prospectos". Atualiza sozinho quando
-  // a usuária move um prospecto (desta semana) para Contatado+.
+  // "Fazer contatos": prospectos em status de contato (Contatado ou além) que
+  // foram tocados/atualizados nesta semana (fuso SP). Assim, quando a usuária
+  // move um prospecto para Contatado+ nesta semana, ele passa a contar — igual
+  // ao "Registrar prospectos" ser funcional, mas para contatos.
   const contactsThisWeek = prospects.filter(
     (p) =>
       CONTACTED_STATUSES.includes(p.status) &&
-      new Date(p.createdAt).getTime() >= weekStart,
+      spDateKey(p.updatedAt) >= weekStart,
   ).length;
 
   return {
@@ -72,7 +104,6 @@ export function computeStats(prospects: Prospect[]): Stats {
 }
 
 export function registeredThisWeek(prospects: Prospect[]): number {
-  const weekStart = startOfWeek().getTime();
-  return prospects.filter((p) => new Date(p.createdAt).getTime() >= weekStart)
-    .length;
+  const weekStart = spWeekStartKey();
+  return prospects.filter((p) => spDateKey(p.createdAt) >= weekStart).length;
 }

@@ -2,20 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useProspects } from "@/lib/store";
-import { computeStats, registeredThisWeek } from "@/lib/derive";
+import { computeStats, registeredThisWeek, spDateKey, spNowLabel, SP_TZ } from "@/lib/derive";
 import { getCategoryDef } from "@/lib/taxonomy";
 import type { Prospect } from "@/lib/types";
 import { GlassCard, ProgressRing } from "@/components/ui";
 import { useProspectForm } from "@/components/shell";
 import { LoadingScreen } from "../page";
 
-/** Chave `YYYY-MM-DD` derivada da data LOCAL (não UTC) do cadastro. */
+/** Chave `YYYY-MM-DD` do dia do cadastro, no fuso de São Paulo. */
 function localDayKey(iso: string): string {
-  const d = new Date(iso);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return spDateKey(iso);
 }
 
 /** Rótulo por extenso: "12 de agosto de 2026". */
@@ -36,7 +32,7 @@ function registrationTime(p: Prospect): number {
 
 function RegistrationItem({ prospect, onOpen }: { prospect: Prospect; onOpen: (p: Prospect) => void }) {
   const cat = getCategoryDef(prospect.category);
-  const time = new Date(prospect.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const time = new Date(prospect.createdAt).toLocaleTimeString("pt-BR", { timeZone: SP_TZ, hour: "2-digit", minute: "2-digit" });
   return (
     <button
       type="button"
@@ -76,7 +72,7 @@ export default function DesafioPage() {
   const [editing, setEditing] = useState(false);
   const [goalCount, setGoalCount] = useState(challenge?.goalCount ?? 15);
   const [contactGoal, setContactGoal] = useState(challenge?.contactGoal ?? 5);
-  const [filterDate, setFilterDate] = useState("");
+  const [filterDate, setFilterDate] = useState(() => spDateKey(new Date()));
 
   /** Prospectos agrupados por dia LOCAL de cadastro, dias mais recentes primeiro. */
   const groupedByDay = useMemo(() => {
@@ -114,13 +110,6 @@ export default function DesafioPage() {
     await saveChallenge({ ...challenge!, goalCount, contactGoal });
     setEditing(false);
   }
-  async function nextWeek() {
-    await saveChallenge({ week: challenge!.week + 1, goalCount, contactGoal, startedAt: new Date().toISOString() });
-  }
-  async function prevWeek() {
-    await saveChallenge({ ...challenge!, week: Math.max(1, challenge!.week - 1) });
-  }
-  const isFirstWeek = challenge.week <= 1;
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-5 pb-6">
@@ -129,6 +118,9 @@ export default function DesafioPage() {
         <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">Desafio da semana {challenge.week}</h1>
         <p className="mt-1 text-xs text-ink-faint">
           O progresso abaixo conta apenas os cadastros e contatos <b className="text-ink-soft">desta semana</b> — ele zera a cada nova semana do calendário.
+        </p>
+        <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-brand-100/70 px-3 py-1 text-xs font-semibold text-brand-700">
+          🗓️ {spNowLabel()} <span className="font-normal text-ink-faint">· horário de São Paulo</span>
         </p>
       </header>
 
@@ -150,7 +142,7 @@ export default function DesafioPage() {
           <div className="mt-6 rounded-2xl p-5 text-center ring-1 ring-emerald-300/50" style={{ background: "linear-gradient(135deg,rgba(34,197,94,.18),rgba(96,165,250,.18))" }}>
             <p className="font-display text-xl font-extrabold text-ink">🎉 Desafio concluído!</p>
             <p className="font-hand mt-1 text-xl text-brand-600">{quote}</p>
-            <p className="mt-2 text-sm text-ink-soft">Excelente trabalho. Use o navegador abaixo para começar a próxima semana.</p>
+            <p className="mt-2 text-sm text-ink-soft">Excelente trabalho! O progresso zera automaticamente na próxima semana.</p>
           </div>
         ) : (
           <div className="mt-6 flex flex-col items-center gap-3">
@@ -159,33 +151,39 @@ export default function DesafioPage() {
           </div>
         )}
 
-        <nav aria-label="Navegar entre as semanas" className="mt-6 flex items-center justify-center gap-2 sm:gap-3">
-          <button
-            type="button"
-            className="btn btn-ghost !px-3 sm:!px-4"
-            onClick={prevWeek}
-            disabled={isFirstWeek}
-            aria-label="Ir para a semana anterior"
-          >
-            <span aria-hidden="true">←</span>
-            <span className="hidden sm:inline">Semana anterior</span>
-          </button>
-
-          <div className="flex min-w-[5rem] flex-col items-center px-1 sm:min-w-[6rem]">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink-faint">Semana</span>
-            <span className="font-display text-2xl font-extrabold leading-none text-brand-600 sm:text-3xl">{challenge.week}</span>
+        <div className="mt-5 border-t border-brand-100/70 pt-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+            <label className="label !mb-0" htmlFor="ver-cadastros-dia">Ver cadastros do dia</label>
+            <input
+              id="ver-cadastros-dia"
+              type="date"
+              className="field !w-auto"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+            />
+            <button
+              type="button"
+              className="btn btn-ghost !py-1.5 !text-xs"
+              onClick={() => setFilterDate(spDateKey(new Date()))}
+            >
+              Hoje
+            </button>
+            {filterDate && (
+              <button
+                type="button"
+                className="btn btn-ghost !py-1.5 !text-xs"
+                onClick={() => setFilterDate("")}
+              >
+                Limpar
+              </button>
+            )}
           </div>
-
-          <button
-            type="button"
-            className={`btn !px-3 sm:!px-4 ${complete ? "btn-primary" : "btn-ghost"}`}
-            onClick={nextWeek}
-            aria-label="Ir para a próxima semana"
-          >
-            <span className="hidden sm:inline">Próxima semana</span>
-            <span aria-hidden="true">→</span>
-          </button>
-        </nav>
+          {filterDate && (
+            <p className="mt-2 text-center text-xs text-ink-faint">
+              {filteredList.length} {filteredList.length === 1 ? "cadastro" : "cadastros"} em {formatDayShort(filterDate)} — detalhes em “Cadastros por data”.
+            </p>
+          )}
+        </div>
       </GlassCard>
 
       <GlassCard className="reveal p-5">
@@ -239,12 +237,7 @@ export default function DesafioPage() {
             <button
               type="button"
               className="btn btn-ghost !py-1.5 !text-xs"
-              onClick={() => {
-                const now = new Date();
-                const m = String(now.getMonth() + 1).padStart(2, "0");
-                const d = String(now.getDate()).padStart(2, "0");
-                setFilterDate(`${now.getFullYear()}-${m}-${d}`);
-              }}
+              onClick={() => setFilterDate(spDateKey(new Date()))}
             >
               Hoje
             </button>

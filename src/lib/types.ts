@@ -7,7 +7,12 @@ export type CategoryId =
   | 'redes'
   | 'comunidade'
   | 'trabalho'
-  | 'empresario_amway';
+  | 'empresario_amway'
+  | 'indicacao'
+  | 'eventos_cursos'
+  | 'cliente'
+  | 'prospeccao'
+  | 'networking';
 
 export type Intimacy = 'muito_proximo' | 'conhecido' | 'prospecto_digital';
 
