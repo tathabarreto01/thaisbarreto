@@ -12,6 +12,13 @@ import { CATEGORIES, getCategoryDef, CHANNELS, STATUSES, MOTIVATIONS, MOTIVATION
 import { useProspects } from "@/lib/store";
 import { useDebouncedValidation } from "@/lib/use-validation";
 import { Drawer, IntimacyPicker, StarRating } from "./ui";
+import { SelectMenu, type SelectOption } from "./select-menu";
+
+const CATEGORY_OPTIONS: SelectOption[] = CATEGORIES.map((c) => ({
+  value: c.id,
+  label: c.label,
+  icon: c.icon,
+}));
 
 /* ---------------- Validation contracts (espelham as rotas /api/validate/*) ---------------- */
 interface EmailValidation {
@@ -236,7 +243,10 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
         : [...f.motivations, option],
     }));
 
-  const subcats = getCategoryDef(form.category).subcategories;
+  const subcatOptions: SelectOption[] = useMemo(
+    () => getCategoryDef(form.category).subcategories.map((s) => ({ value: s, label: s })),
+    [form.category],
+  );
 
   /* -------- Assistive validation (não bloqueia o salvamento) -------- */
   const emailVal = useDebouncedValidation<EmailValidation>({
@@ -341,19 +351,27 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">Categoria</label>
-            <select className="field" value={form.category} onChange={(e) => {
-              const c = e.target.value as CategoryId;
-              setForm((f) => ({ ...f, category: c, subcategory: getCategoryDef(c).subcategories[0] ?? "" }));
-            }}>
-              {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
-            </select>
+            <label className="label" htmlFor="prospect-category">Categoria</label>
+            <SelectMenu
+              id="prospect-category"
+              ariaLabel="Categoria"
+              value={form.category}
+              options={CATEGORY_OPTIONS}
+              onChange={(v) => {
+                const c = v as CategoryId;
+                setForm((f) => ({ ...f, category: c, subcategory: getCategoryDef(c).subcategories[0] ?? "" }));
+              }}
+            />
           </div>
           <div>
-            <label className="label">Origem</label>
-            <select className="field" value={form.subcategory} onChange={(e) => set("subcategory", e.target.value)}>
-              {subcats.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <label className="label" htmlFor="prospect-subcategory">Origem</label>
+            <SelectMenu
+              id="prospect-subcategory"
+              ariaLabel="Origem"
+              value={form.subcategory}
+              options={subcatOptions}
+              onChange={(v) => set("subcategory", v)}
+            />
           </div>
         </div>
 
