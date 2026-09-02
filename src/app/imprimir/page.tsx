@@ -9,11 +9,10 @@ import {
   MOTIVATION_OTHER,
 } from "@/lib/taxonomy";
 import type { Prospect } from "@/lib/types";
-import { GlassCard, EmptyState, IntimacyDots, StarRating, StatusBadge } from "@/components/ui";
+import { GlassCard, EmptyState, IntimacyDots, StarRating, StatusBadge, LoadingScreen } from "@/components/ui";
 import { PrintableProspect } from "@/components/printable-prospect";
 import { useProspectForm } from "@/components/shell";
 import { downloadCSV } from "@/lib/export";
-import { LoadingScreen } from "../page";
 
 type PrintJob = { kind: "fichas"; list: Prospect[] | null } | { kind: "resumo" };
 

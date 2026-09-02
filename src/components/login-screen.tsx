@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { GlassCard } from "./ui";
 
 export function LoginScreen() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signedOutReason } = useAuth();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,6 +60,15 @@ export function LoginScreen() {
               <input className="field" type="password" autoComplete={mode === "in" ? "current-password" : "new-password"} required minLength={6} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
 
+            {signedOutReason === "idle" && mode === "in" && !error && !info && (
+              <div
+                role="status"
+                className="rounded-xl border px-3 py-2 text-sm"
+                style={{ background: "var(--notice-bg)", color: "var(--notice-fg)", borderColor: "var(--notice-border)" }}
+              >
+                Sua sessão expirou por inatividade. Entre novamente.
+              </div>
+            )}
             {error && <div className="rounded-xl px-3 py-2 text-sm" style={{ background: "rgba(254,226,226,.8)", color: "#b91c1c" }}>{error}</div>}
             {info && <div className="rounded-xl px-3 py-2 text-sm" style={{ background: "rgba(220,252,231,.85)", color: "#15803d" }}>{info}</div>}
 

@@ -52,6 +52,10 @@
   --chip-brand-border-strong: rgba(37, 99, 235, 0.4);
   --chip-muted-border: rgba(37, 99, 235, 0.15);
   --favorite-fg: #b45309;
+  /* Aviso discreto (sessão expirada) — tokenizado para adaptar aos dois temas */
+  --notice-bg: rgba(254, 243, 199, 0.85);
+  --notice-fg: #92400e;
+  --notice-border: rgba(180, 83, 9, 0.22);
 
   /* Neumorphism (soft UI) — luz no topo-esquerda, sombra no baixo-direita.
      Combinado com o glass: relevo suave sem matar a translucidez. */
@@ -513,6 +517,10 @@ button.chip:active { box-shadow: var(--neu-in-sm); }
   --chip-brand-border-strong: rgba(147, 197, 253, 0.45);
   --chip-muted-border: rgba(255, 255, 255, 0.1);
   --favorite-fg: #fcd34d;
+  /* Aviso discreto (sessão expirada) — âmbar translúcido sobre superfície escura */
+  --notice-bg: rgba(251, 191, 36, 0.14);
+  --notice-fg: #fcd34d;
+  --notice-border: rgba(252, 211, 77, 0.3);
 
   /* Neumorphism noturno: luz branca quase imperceptível, sombra preta forte */
   --neu-light: rgba(255, 255, 255, 0.05);

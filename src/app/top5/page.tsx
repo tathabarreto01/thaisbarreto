@@ -5,9 +5,8 @@ import Link from "next/link";
 import { useProspects } from "@/lib/store";
 import { INTIMACY, MOTIVATION_OTHER, getIntimacyDef } from "@/lib/taxonomy";
 import type { Prospect } from "@/lib/types";
-import { GlassCard, EmptyState, IntimacyDots, StarRating } from "@/components/ui";
+import { GlassCard, EmptyState, IntimacyDots, StarRating, LoadingScreen } from "@/components/ui";
 import { useProspectForm } from "@/components/shell";
-import { LoadingScreen } from "../page";
 
 function motivationsList(p: Prospect): string[] {
   const parts = [...(p.motivations ?? [])];

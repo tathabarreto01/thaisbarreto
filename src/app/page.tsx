@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { useProspects } from "@/lib/store";
 import { computeStats, registeredThisWeek } from "@/lib/derive";
 import { getCategoryDef, INTEREST_LABELS } from "@/lib/taxonomy";
-import { GlassCard, ProgressRing, StatusBadge, EmptyState } from "@/components/ui";
+import { GlassCard, ProgressRing, StatusBadge, EmptyState, LoadingScreen } from "@/components/ui";
 import { useProspectForm } from "@/components/shell";
 
 export default function DashboardPage() {
@@ -171,19 +171,5 @@ function StatTile({ label, value, icon, tone }: { label: string; value: number; 
         <div className="mt-1 text-xs font-semibold text-ink-faint">{label}</div>
       </div>
     </GlassCard>
-  );
-}
-
-export function LoadingScreen() {
-  return (
-    <div className="mx-auto max-w-6xl">
-      <div className="grid grid-cols-2 gap-3 pt-8 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="glass shimmer h-20" />)}
-      </div>
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <div className="glass shimmer h-40" />
-        <div className="glass shimmer h-40 lg:col-span-2" />
-      </div>
-    </div>
   );
 }

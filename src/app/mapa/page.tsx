@@ -4,9 +4,8 @@ import { useMemo } from "react";
 import { useProspects } from "@/lib/store";
 import { CATEGORIES } from "@/lib/taxonomy";
 import type { Prospect } from "@/lib/types";
-import { GlassCard } from "@/components/ui";
+import { GlassCard, LoadingScreen } from "@/components/ui";
 import { useProspectForm } from "@/components/shell";
-import { LoadingScreen } from "../page";
 
 export default function MapaPage() {
   const { ready, prospects } = useProspects();

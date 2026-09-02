@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   AppData,
   ContactLogEntry,
@@ -8,7 +7,7 @@ import type {
 } from "./types";
 import type { ProspectRepository } from "./repository";
 import { newId } from "./repository";
-import { getSupabase } from "./supabase";
+import { getAuth, getDb } from "./supabase";
 
 // DB row shape (snake_case) for the `prospects` table.
 interface Row {
@@ -123,8 +122,8 @@ const DEFAULT_CHALLENGE: WeeklyChallenge = {
 
 /** Cloud-backed repository. Data is scoped to the logged-in user via RLS. */
 export class SupabaseRepository implements ProspectRepository {
-  private get db(): SupabaseClient {
-    return getSupabase();
+  private get db() {
+    return getDb();
   }
 
   async load(): Promise<AppData> {
@@ -199,7 +198,7 @@ export class SupabaseRepository implements ProspectRepository {
   }
 
   async saveChallenge(challenge: WeeklyChallenge): Promise<WeeklyChallenge> {
-    const { data: userData } = await this.db.auth.getUser();
+    const { data: userData } = await getAuth().getUser();
     const userId = userData.user?.id;
     const { error } = await this.db
       .from("app_state")

@@ -5,9 +5,8 @@ import { useProspects } from "@/lib/store";
 import { computeStats, registeredThisWeek, spDateKey, spNowLabel, SP_TZ } from "@/lib/derive";
 import { getCategoryDef } from "@/lib/taxonomy";
 import type { Prospect } from "@/lib/types";
-import { GlassCard, ProgressRing } from "@/components/ui";
+import { GlassCard, ProgressRing, LoadingScreen } from "@/components/ui";
 import { useProspectForm } from "@/components/shell";
-import { LoadingScreen } from "../page";
 
 /** Chave `YYYY-MM-DD` do dia do cadastro, no fuso de São Paulo. */
 function localDayKey(iso: string): string {

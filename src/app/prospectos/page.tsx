@@ -4,11 +4,10 @@ import { useMemo, useState } from "react";
 import { useProspects } from "@/lib/store";
 import { CATEGORIES, INTIMACY, STATUSES } from "@/lib/taxonomy";
 import type { CategoryId, FunnelStatus, Intimacy, Prospect } from "@/lib/types";
-import { GlassCard, EmptyState, ConfirmDialog } from "@/components/ui";
+import { GlassCard, EmptyState, ConfirmDialog, LoadingScreen } from "@/components/ui";
 import { ProspectCard } from "@/components/prospect-card";
 import { useProspectForm } from "@/components/shell";
 import { downloadCSV } from "@/lib/export";
-import { LoadingScreen } from "../page";
 
 type Sort = "recent" | "name" | "interest";
 type Period = "all" | "today" | "week" | "month" | "year" | "custom";
