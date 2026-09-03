@@ -12,12 +12,22 @@ import { CATEGORIES, getCategoryDef, CHANNELS, STATUSES, MOTIVATIONS, MOTIVATION
 import { useProspects } from "@/lib/store";
 import { useDebouncedValidation } from "@/lib/use-validation";
 import { Drawer, IntimacyPicker, StarRating } from "./ui";
-import { SelectMenu, type SelectOption } from "./select-menu";
+import { MENU_COMPACT, SelectMenu, type SelectOption } from "./select-menu";
 
 const CATEGORY_OPTIONS: SelectOption[] = CATEGORIES.map((c) => ({
   value: c.id,
   label: c.label,
   icon: c.icon,
+}));
+
+const MARITAL_OPTIONS: SelectOption[] = MARITAL_STATUS.map((s) => ({ value: s, label: s }));
+
+const NEXT_STEP_OPTIONS: SelectOption[] = NEXT_STEPS.map((s) => ({ value: s, label: s }));
+
+const CHANNEL_OPTIONS: SelectOption[] = Object.entries(CHANNELS).map(([id, def]) => ({
+  value: id,
+  label: def.label,
+  icon: def.icon,
 }));
 
 /* ---------------- Validation contracts (espelham as rotas /api/validate/*) ---------------- */
@@ -46,6 +56,20 @@ interface CityValidation {
 }
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
+
+/**
+ * Extrai o handle puro do Instagram: aceita "@nome", "nome",
+ * "instagram.com/nome/" ou a URL completa e devolve sempre "nome".
+ */
+function instagramHandle(raw: string): string {
+  return raw
+    .trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/^(?:www\.)?instagram\.com\//i, "")
+    .replace(/[/?#].*$/, "")
+    .replace(/^@+/, "")
+    .trim();
+}
 
 async function fetchEmail(email: string, signal: AbortSignal): Promise<EmailValidation> {
   const res = await fetch("/api/validate/email", {
@@ -145,6 +169,7 @@ type FormState = {
   interest: number;
   status: Prospect["status"];
   phone: string;
+  instagram: string;
   email: string;
   city: string;
   profession: string;
@@ -166,6 +191,7 @@ function blank(preset?: Props["preset"]): FormState {
     interest: 0,
     status: "novo",
     phone: "",
+    instagram: "",
     email: "",
     city: "",
     profession: "",
@@ -187,6 +213,7 @@ function fromProspect(p: Prospect): FormState {
     interest: p.interest,
     status: p.status,
     phone: p.phone ?? "",
+    instagram: p.instagram ? `@${p.instagram}` : "",
     email: p.email ?? "",
     city: p.city ?? "",
     profession: p.profession ?? "",
@@ -248,6 +275,14 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
     [form.category],
   );
 
+  // Preserva um "próximo passo" salvo que não esteja na lista padrão.
+  const nextStepOptions: SelectOption[] = useMemo(() => {
+    const custom = form.nextStep && !NEXT_STEPS.includes(form.nextStep);
+    return custom
+      ? [...NEXT_STEP_OPTIONS, { value: form.nextStep, label: form.nextStep }]
+      : NEXT_STEP_OPTIONS;
+  }, [form.nextStep]);
+
   /* -------- Assistive validation (não bloqueia o salvamento) -------- */
   const emailVal = useDebouncedValidation<EmailValidation>({
     value: form.email,
@@ -293,6 +328,12 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
     if (d?.valid && d.national && d.national !== form.phone) set("phone", d.national);
   };
 
+  // Instagram: ao sair do campo, mostra sempre "@handle" (o dado salvo é o handle puro).
+  const applyInstagramFormat = () => {
+    const handle = instagramHandle(form.instagram);
+    set("instagram", handle ? `@${handle}` : "");
+  };
+
   const draft: ProspectDraft = useMemo(
     () => ({
       name: form.name,
@@ -302,6 +343,7 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
       interest: form.interest,
       status: form.status,
       phone: form.phone.trim() || undefined,
+      instagram: instagramHandle(form.instagram) || undefined,
       email: form.email.trim() || undefined,
       city: form.city.trim() || undefined,
       profession: form.profession.trim() || undefined,
@@ -426,6 +468,21 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
         </div>
 
         <div>
+          <label className="label" htmlFor="prospect-instagram">Instagram</label>
+          <input
+            id="prospect-instagram"
+            name={`mp-instagram-${uid}`}
+            className="field"
+            inputMode="text"
+            placeholder="@usuario"
+            value={form.instagram}
+            onChange={(e) => set("instagram", e.target.value)}
+            onBlur={applyInstagramFormat}
+            {...noAutofill}
+          />
+        </div>
+
+        <div>
           <div ref={cityBoxRef} className="relative">
           <label className="label" htmlFor="prospect-city">Cidade</label>
           <input
@@ -514,12 +571,13 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
           </div>
           <div>
             <label className="label" htmlFor="prospect-marital">Estado Civil</label>
-            <select id="prospect-marital" className="field" value={form.maritalStatus} onChange={(e) => set("maritalStatus", e.target.value)}>
-              <option value="">Selecione…</option>
-              {MARITAL_STATUS.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+            <SelectMenu
+              id="prospect-marital"
+              ariaLabel="Estado civil"
+              value={form.maritalStatus}
+              options={MARITAL_OPTIONS}
+              onChange={(v) => set("maritalStatus", v)}
+            />
           </div>
         </div>
 
@@ -582,15 +640,14 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
         <div className="grid grid-cols-[1fr_auto] gap-3">
           <div>
             <label className="label" htmlFor="prospect-nextstep">Próximo passo</label>
-            <select id="prospect-nextstep" className="field" value={form.nextStep} onChange={(e) => set("nextStep", e.target.value)}>
-              <option value="">Selecione o próximo passo…</option>
-              {NEXT_STEPS.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-              {form.nextStep && !NEXT_STEPS.includes(form.nextStep) && (
-                <option value={form.nextStep}>{form.nextStep}</option>
-              )}
-            </select>
+            <SelectMenu
+              id="prospect-nextstep"
+              ariaLabel="Próximo passo"
+              placeholder="Selecione o próximo passo…"
+              value={form.nextStep}
+              options={nextStepOptions}
+              onChange={(v) => set("nextStep", v)}
+            />
           </div>
           <div>
             <label className="label">Data</label>
@@ -640,9 +697,15 @@ function ContactHistory({ prospect }: { prospect: Prospect }) {
     <div className="rounded-2xl p-4" style={{ background: "var(--w40)" }}>
       <div className="label">Histórico de contatos</div>
       <div className="flex items-end gap-2">
-        <select className="field !w-auto" value={channel} onChange={(e) => setChannel(e.target.value as ContactLogEntry["channel"])}>
-          {Object.entries(CHANNELS).map(([k, v]) => <option key={k} value={k}>{v.icon} {v.label}</option>)}
-        </select>
+        <SelectMenu
+          id={`contact-channel-${prospect.id}`}
+          ariaLabel="Canal do contato"
+          value={channel}
+          options={CHANNEL_OPTIONS}
+          triggerClassName="!w-auto"
+          menuClassName={MENU_COMPACT}
+          onChange={(v) => setChannel(v as ContactLogEntry["channel"])}
+        />
         <input className="field" placeholder="Registrar um contato…" value={note} onChange={(e) => setNote(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
         <button className="btn btn-primary !px-3" onClick={add} disabled={busy || !note.trim()}>+</button>
       </div>

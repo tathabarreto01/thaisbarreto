@@ -42,6 +42,7 @@ export interface Prospect {
 
   // Expanded CRM fields
   phone?: string;
+  instagram?: string; // @ do perfil (armazenado como informado)
   email?: string;
   city?: string;
   profession?: string; // Profissão

@@ -69,7 +69,9 @@ export function PrintableProspect({ prospect }: { prospect: Prospect }) {
   const history = [...(prospect.history ?? [])].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
-  const hasContact = Boolean(prospect.phone || prospect.email || prospect.city);
+  const hasContact = Boolean(
+    prospect.phone || prospect.instagram || prospect.email || prospect.city,
+  );
   const showOther =
     prospect.motivations?.includes(MOTIVATION_OTHER) && Boolean(prospect.interestNotes);
   const waHref = prospect.phone ? whatsappLink(prospect.phone) : null;
@@ -174,8 +176,9 @@ export function PrintableProspect({ prospect }: { prospect: Prospect }) {
           Contato
         </h2>
         {hasContact ? (
-          <div className="grid grid-cols-3 gap-0 border border-slate-300">
+          <div className="grid grid-cols-2 gap-0 border border-slate-300">
             <Field label="Telefone / WhatsApp" value={prospect.phone} />
+            <Field label="Instagram" value={prospect.instagram ? `@${prospect.instagram}` : ""} />
             <Field label="E-mail" value={prospect.email} />
             <Field label="Cidade" value={prospect.city} />
           </div>

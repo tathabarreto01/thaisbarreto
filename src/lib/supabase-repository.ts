@@ -19,6 +19,7 @@ interface Row {
   interest: number;
   status: Prospect["status"];
   phone: string | null;
+  instagram: string | null;
   email: string | null;
   city: string | null;
   profession: string | null;
@@ -44,6 +45,7 @@ function rowToProspect(r: Row): Prospect {
     interest: r.interest,
     status: r.status,
     phone: r.phone ?? undefined,
+    instagram: r.instagram ?? undefined,
     email: r.email ?? undefined,
     city: r.city ?? undefined,
     profession: r.profession ?? undefined,
@@ -69,6 +71,7 @@ function draftToRow(draft: ProspectDraft): Record<string, unknown> {
     interest: draft.interest ?? 0,
     status: draft.status ?? "novo",
     phone: draft.phone ?? null,
+    instagram: draft.instagram ?? null,
     email: draft.email ?? null,
     city: draft.city ?? null,
     profession: draft.profession ?? null,
@@ -94,6 +97,7 @@ function patchToRow(patch: Partial<Prospect>): Record<string, unknown> {
     interest: "interest",
     status: "status",
     phone: "phone",
+    instagram: "instagram",
     email: "email",
     city: "city",
     profession: "profession",
@@ -115,8 +119,8 @@ function patchToRow(patch: Partial<Prospect>): Record<string, unknown> {
 
 const DEFAULT_CHALLENGE: WeeklyChallenge = {
   week: 1,
-  goalCount: 15,
-  contactGoal: 5,
+  goalCount: 60,
+  contactGoal: 2,
   startedAt: new Date().toISOString(),
 };
 

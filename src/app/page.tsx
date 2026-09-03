@@ -48,12 +48,12 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Weekly challenge */}
-        <GlassCard className="reveal flex items-center gap-4 p-5">
-          <ProgressRing value={doneWeek} max={challenge?.goalCount ?? 15} label={`${doneWeek}`} sub={`de ${challenge?.goalCount ?? 15}`} />
+        <GlassCard className="reveal flex flex-col items-center justify-center gap-4 p-6 text-center">
+          <ProgressRing value={doneWeek} max={challenge?.goalCount ?? 60} size={150} label={`${doneWeek}`} sub={`de ${challenge?.goalCount ?? 60}`} />
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-brand-700">Desafio da semana {challenge?.week ?? 1}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-brand-700">Desafio da semana</p>
             <p className="mt-1 text-sm text-ink-soft">Você registrou <b className="text-ink">{doneWeek}</b> prospectos esta semana.</p>
-            <Link href="/desafio" className="btn btn-ghost mt-2 !py-1.5 !text-xs">Ver desafio →</Link>
+            <Link href="/desafio" className="btn btn-ghost mt-3 !py-1.5 !text-xs">Ver desafio →</Link>
           </div>
         </GlassCard>
 

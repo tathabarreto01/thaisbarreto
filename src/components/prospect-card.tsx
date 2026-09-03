@@ -3,7 +3,7 @@
 import type { Prospect } from "@/lib/types";
 import { getCategoryDef, MOTIVATION_OTHER } from "@/lib/taxonomy";
 import { useProspects } from "@/lib/store";
-import { GlassCard, IntimacyDots, StarRating, StatusBadge } from "./ui";
+import { GlassCard, InstagramIcon, IntimacyDots, StarRating, StatusBadge, WhatsAppIcon } from "./ui";
 import { useProspectForm } from "./shell";
 
 export function ProspectCard({
@@ -98,17 +98,22 @@ export function ProspectCard({
 
       <div className="mt-1 flex items-center gap-2 border-t border-white/60 pt-3">
         {prospect.phone && (
-          <a href={`https://wa.me/55${prospect.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="btn btn-ghost !py-1.5 !text-xs" onClick={(e) => e.stopPropagation()}>
-            💬 WhatsApp
+          <a href={`https://wa.me/55${prospect.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="btn btn-ghost !px-2.5 !py-1.5" onClick={(e) => e.stopPropagation()} title="Chamar no WhatsApp" aria-label={`Chamar ${prospect.name} no WhatsApp`}>
+            <WhatsAppIcon brand size={17} />
           </a>
         )}
-        <button className="btn btn-ghost !py-1.5 !text-xs" onClick={(e) => { e.stopPropagation(); openEdit(prospect); }}>Editar</button>
-        <button className="btn btn-ghost !py-1.5 !text-xs !text-ink-faint" onClick={(e) => { e.stopPropagation(); onDelete(prospect); }} title="Excluir" aria-label="Excluir prospecto" style={{ marginLeft: "auto" }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>
-        </button>
+        {prospect.instagram && (
+          <a href={`https://instagram.com/${prospect.instagram}`} target="_blank" rel="noopener noreferrer" className="btn btn-ghost !px-2.5 !py-1.5" onClick={(e) => e.stopPropagation()} title={`Abrir @${prospect.instagram} no Instagram`} aria-label={`Abrir o Instagram de ${prospect.name}`}>
+            <InstagramIcon brand size={17} />
+          </a>
+        )}
         {(prospect.history?.length ?? 0) > 0 && (
           <span className="text-[11px] text-ink-faint" title="Contatos registrados">📇 {prospect.history.length}</span>
         )}
+        <button className="btn btn-ghost !py-1.5 !text-xs" onClick={(e) => { e.stopPropagation(); openEdit(prospect); }} style={{ marginLeft: "auto" }}>Editar</button>
+        <button className="btn btn-ghost !py-1.5 !text-xs !text-ink-faint" onClick={(e) => { e.stopPropagation(); onDelete(prospect); }} title="Excluir" aria-label="Excluir prospecto">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>
+        </button>
       </div>
     </GlassCard>
   );

@@ -52,6 +52,15 @@
   --chip-brand-border-strong: rgba(37, 99, 235, 0.4);
   --chip-muted-border: rgba(37, 99, 235, 0.15);
   --favorite-fg: #b45309;
+
+  /* Menu de <SelectMenu> — superfície SÓLIDA (sem blur), igual ao popup nativo */
+  --menu-bg: #ffffff;
+  --menu-fg: var(--ink);
+  --menu-border: rgba(37, 99, 235, 0.16);
+  --menu-shadow: 0 6px 18px rgba(15, 23, 42, 0.14);
+  --menu-active-bg: #cfe4ff;
+  --menu-active-fg: var(--ink);
+  --menu-selected-bg: rgba(207, 228, 255, 0.45);
   /* Aviso discreto (sessão expirada) — tokenizado para adaptar aos dois temas */
   --notice-bg: rgba(254, 243, 199, 0.85);
   --notice-fg: #92400e;
@@ -302,31 +311,14 @@ body::after {
   background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--neu-in-sm), 0 0 0 4px rgba(59, 130, 246, 0.16);
 }
-select.field { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237183a6' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.7rem center; padding-right: 2.2rem; }
-
-/* Popup nativo de <select> e <input type="date">: o navegador desenha essa
-   lista fora do nosso CSS translúcido, então as <option> precisam de cor
-   SÓLIDA explícita — senão, no dark, texto claro cai sobre popup branco. */
+/* Calendário nativo do <input type="date">: o navegador o desenha fora do nosso
+   CSS, então `color-scheme` é o único jeito de acompanhar o tema. */
 .field {
   color-scheme: light;
-}
-select.field option,
-select.field optgroup {
-  background-color: #ffffff;
-  color: var(--ink);
 }
 
 :root[data-theme="dark"] .field {
   color-scheme: dark;
-}
-:root[data-theme="dark"] select.field option,
-:root[data-theme="dark"] select.field optgroup {
-  background-color: #16233f;
-  color: #eaf1ff;
-}
-:root[data-theme="dark"] select.field option:checked {
-  background-color: #24406f;
-  color: #ffffff;
 }
 
 .label {
@@ -517,6 +509,15 @@ button.chip:active { box-shadow: var(--neu-in-sm); }
   --chip-brand-border-strong: rgba(147, 197, 253, 0.45);
   --chip-muted-border: rgba(255, 255, 255, 0.1);
   --favorite-fg: #fcd34d;
+
+  /* Menu sólido no escuro — mesmas cores do popup nativo do <select> */
+  --menu-bg: #16233f;
+  --menu-fg: #eaf1ff;
+  --menu-border: rgba(255, 255, 255, 0.14);
+  --menu-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  --menu-active-bg: #24406f;
+  --menu-active-fg: #ffffff;
+  --menu-selected-bg: rgba(36, 64, 111, 0.5);
   /* Aviso discreto (sessão expirada) — âmbar translúcido sobre superfície escura */
   --notice-bg: rgba(251, 191, 36, 0.14);
   --notice-fg: #fcd34d;

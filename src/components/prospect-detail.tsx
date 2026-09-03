@@ -15,7 +15,9 @@ import {
   ConfirmDialog,
   IntimacyDots,
   StarRating,
+  InstagramIcon,
   StatusBadge,
+  WhatsAppIcon,
 } from "./ui";
 
 function initialsOf(name: string): string {
@@ -79,7 +81,7 @@ export function ProspectDetail({
   const intim = getIntimacyDef(prospect.intimacy);
   const phoneDigits = prospect.phone ? digitsOf(prospect.phone) : "";
   const hasContact = Boolean(
-    prospect.phone || prospect.email || prospect.city,
+    prospect.phone || prospect.instagram || prospect.email || prospect.city,
   );
   const interestLabel =
     prospect.interest > 0 ? INTEREST_LABELS[prospect.interest - 1] : "Sem interesse";
@@ -97,7 +99,7 @@ export function ProspectDetail({
         onClose={onClose}
         title="Detalhes do prospecto"
         footer={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {prospect.phone && (
               <a
                 href={`https://wa.me/55${phoneDigits}`}
@@ -105,7 +107,17 @@ export function ProspectDetail({
                 rel="noopener noreferrer"
                 className="btn btn-ghost !text-sm"
               >
-                💬 WhatsApp
+                <WhatsAppIcon brand /> WhatsApp
+              </a>
+            )}
+            {prospect.instagram && (
+              <a
+                href={`https://instagram.com/${prospect.instagram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-ghost !text-sm"
+              >
+                <InstagramIcon brand /> Instagram
               </a>
             )}
             <button
@@ -236,7 +248,29 @@ export function ProspectDetail({
                       className="chip !py-0.5 hover:scale-105"
                       style={{ background: "rgba(220,252,231,.7)", color: "#15803d", borderColor: "rgba(21,128,61,.25)" }}
                     >
-                      💬 WhatsApp
+                      <WhatsAppIcon /> WhatsApp
+                    </a>
+                  </div>
+                )}
+                {prospect.instagram && (
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <InstagramIcon brand size={17} />
+                    <a
+                      href={`https://instagram.com/${prospect.instagram}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate font-semibold text-ink hover:text-brand-700"
+                    >
+                      @{prospect.instagram}
+                    </a>
+                    <a
+                      href={`https://instagram.com/${prospect.instagram}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="chip !py-0.5 hover:scale-105"
+                      style={{ background: "rgba(253,232,243,.75)", color: "#be185d", borderColor: "rgba(190,24,93,.25)" }}
+                    >
+                      <InstagramIcon /> Instagram
                     </a>
                   </div>
                 )}

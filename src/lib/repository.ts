@@ -46,8 +46,8 @@ function defaultData(): AppData {
     prospects: [],
     challenge: {
       week: 1,
-      goalCount: 15,
-      contactGoal: 5,
+      goalCount: 60,
+      contactGoal: 2,
       startedAt: nowISO(),
     },
   };
@@ -97,6 +97,7 @@ class LocalStorageRepository implements ProspectRepository {
       interest: draft.interest ?? 0,
       status: draft.status ?? "novo",
       phone: draft.phone,
+      instagram: draft.instagram,
       email: draft.email,
       city: draft.city,
       profession: draft.profession,
@@ -127,6 +128,7 @@ class LocalStorageRepository implements ProspectRepository {
       interest: draft.interest ?? 0,
       status: draft.status ?? "novo",
       phone: draft.phone,
+      instagram: draft.instagram,
       email: draft.email,
       city: draft.city,
       profession: draft.profession,

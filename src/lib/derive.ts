@@ -9,11 +9,10 @@ export interface Stats {
   byCategory: { id: CategoryId; label: string; icon: string; count: number }[];
   byStatus: { id: FunnelStatus; label: string; color: string; count: number }[];
   byInterest: number[]; // index 0..5 => count
-  contactsThisWeek: number;
 }
 
 // Status que indicam que um contato foi feito (Contatado ou além no funil).
-const CONTACTED_STATUSES: FunnelStatus[] = [
+export const CONTACTED_STATUSES: FunnelStatus[] = [
   "contatado",
   "reuniao",
   "acompanhamento",
@@ -61,8 +60,6 @@ export function spNowLabel(): string {
 }
 
 export function computeStats(prospects: Prospect[]): Stats {
-  const weekStart = spWeekStartKey();
-
   const byCategory = CATEGORIES.map((c) => ({
     id: c.id,
     label: c.label,
@@ -81,16 +78,6 @@ export function computeStats(prospects: Prospect[]): Stats {
     (n) => prospects.filter((p) => p.interest === n).length,
   );
 
-  // "Fazer contatos": prospectos em status de contato (Contatado ou além) que
-  // foram tocados/atualizados nesta semana (fuso SP). Assim, quando a usuária
-  // move um prospecto para Contatado+ nesta semana, ele passa a contar — igual
-  // ao "Registrar prospectos" ser funcional, mas para contatos.
-  const contactsThisWeek = prospects.filter(
-    (p) =>
-      CONTACTED_STATUSES.includes(p.status) &&
-      spDateKey(p.updatedAt) >= weekStart,
-  ).length;
-
   return {
     total: prospects.length,
     favorites: prospects.filter((p) => p.favorite).length,
@@ -99,8 +86,26 @@ export function computeStats(prospects: Prospect[]): Stats {
     byCategory,
     byStatus,
     byInterest,
-    contactsThisWeek,
   };
+}
+
+/**
+ * Contatos feitos em um dia específico (chave "YYYY-MM-DD", fuso SP):
+ * prospectos em status de contato (Contatado ou além) cuja última atualização
+ * caiu naquele dia.
+ */
+export function contactsOnDay(prospects: Prospect[], dayKey: string): number {
+  if (!dayKey) return 0;
+  return prospects.filter(
+    (p) =>
+      CONTACTED_STATUSES.includes(p.status) &&
+      spDateKey(p.updatedAt) === dayKey,
+  ).length;
+}
+
+/** Total geral de contatos feitos (sem recorte de data). */
+export function totalContacts(prospects: Prospect[]): number {
+  return prospects.filter((p) => CONTACTED_STATUSES.includes(p.status)).length;
 }
 
 export function registeredThisWeek(prospects: Prospect[]): number {

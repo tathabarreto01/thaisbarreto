@@ -16,7 +16,19 @@ interface Props {
   ariaLabel?: string;
   placeholder?: string;
   disabled?: boolean;
+  /** Classes extras do gatilho (ex.: `!w-auto !py-1.5 !text-sm` na barra de filtros). */
+  triggerClassName?: string;
+  /** Posicionamento/largura do menu. Padrão: mesma largura do gatilho. */
+  menuClassName?: string;
 }
+
+const MENU_WIDTH_DEFAULT = "left-0 right-0";
+
+/**
+ * Menu para gatilhos compactos (`!w-auto`): acompanha a largura do gatilho, mas
+ * pode crescer até caber o rótulo mais longo sem estourar a viewport.
+ */
+export const MENU_COMPACT = "left-0 w-max min-w-full max-w-[min(18rem,calc(100vw-3rem))]";
 
 const TYPEAHEAD_RESET_MS = 700;
 
@@ -40,10 +52,9 @@ function Chevron({ open }: { open: boolean }) {
 }
 
 /**
- * Select acessível com menu flutuante em `glass-strong` — substitui o `<select>`
- * nativo (cujo popup não é estilizável) mantendo o padrão ARIA de combobox:
- * o foco permanece no gatilho e a opção corrente é anunciada por
- * `aria-activedescendant`.
+ * Select acessível que reproduz o visual do popup nativo (lista sólida, colada
+ * ao campo, linhas de ponta a ponta) mantendo o padrão ARIA de combobox: o foco
+ * permanece no gatilho e a opção corrente é anunciada por `aria-activedescendant`.
  */
 export function SelectMenu({
   value,
@@ -53,6 +64,8 @@ export function SelectMenu({
   ariaLabel,
   placeholder = "Selecione…",
   disabled = false,
+  triggerClassName = "",
+  menuClassName = MENU_WIDTH_DEFAULT,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -171,7 +184,7 @@ export function SelectMenu({
         disabled={disabled}
         onKeyDown={onKeyDown}
         onClick={() => (open ? closeMenu() : openMenu(selectedIndex))}
-        className="field flex cursor-pointer items-center justify-between gap-2 text-left disabled:cursor-not-allowed disabled:opacity-60"
+        className={`field flex cursor-pointer items-center justify-between gap-2 text-left disabled:cursor-not-allowed disabled:opacity-60 ${triggerClassName}`}
       >
         <span className="min-w-0 flex-1 truncate" style={{ color: selected ? "var(--ink)" : "var(--ink-faint)" }}>
           {selected ? (
@@ -192,7 +205,14 @@ export function SelectMenu({
           id={listId}
           role="listbox"
           aria-label={ariaLabel}
-          className="glass-strong absolute left-0 right-0 top-full z-50 mt-1 max-h-72 overflow-auto p-1"
+          className={`absolute top-full z-50 mt-0.5 max-h-72 overflow-auto ${menuClassName}`}
+          style={{
+            background: "var(--menu-bg)",
+            color: "var(--menu-fg)",
+            border: "1px solid var(--menu-border)",
+            borderRadius: "10px",
+            boxShadow: "var(--menu-shadow)",
+          }}
         >
           {options.map((option, i) => {
             const isSelected = option.value === value;
@@ -208,21 +228,21 @@ export function SelectMenu({
                   e.preventDefault();
                   commit(i);
                 }}
-                className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors"
+                className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm transition-colors"
                 style={{
                   background: isActive
-                    ? "var(--chip-brand-bg-strong)"
+                    ? "var(--menu-active-bg)"
                     : isSelected
-                      ? "var(--chip-brand-bg)"
+                      ? "var(--menu-selected-bg)"
                       : "transparent",
-                  color: isSelected || isActive ? "var(--chip-brand-fg)" : "var(--ink)",
+                  color: isActive ? "var(--menu-active-fg)" : "var(--menu-fg)",
                   fontWeight: isSelected ? 700 : 500,
                 }}
               >
                 {option.icon && <span aria-hidden="true">{option.icon}</span>}
                 <span className="min-w-0 flex-1 truncate">{option.label}</span>
                 {isSelected && (
-                  <span aria-hidden="true" style={{ color: "var(--accent)" }}>
+                  <span aria-hidden="true" style={{ color: isActive ? "currentColor" : "var(--accent)" }}>
                     ✓
                   </span>
                 )}

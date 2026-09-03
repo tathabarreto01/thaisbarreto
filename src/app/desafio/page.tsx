@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useProspects } from "@/lib/store";
-import { computeStats, registeredThisWeek, spDateKey, spNowLabel, SP_TZ } from "@/lib/derive";
+import { computeStats, contactsOnDay, totalContacts, spDateKey, spNowLabel, SP_TZ } from "@/lib/derive";
 import { getCategoryDef } from "@/lib/taxonomy";
 import type { Prospect } from "@/lib/types";
 import { GlassCard, ProgressRing, LoadingScreen } from "@/components/ui";
@@ -17,6 +17,12 @@ function localDayKey(iso: string): string {
 function formatDayLong(key: string): string {
   const [y, m, d] = key.split("-").map(Number);
   return new Date(y, m - 1, d).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+}
+
+/** Rótulo curto: "02/09". */
+function formatDayShort(key: string): string {
+  const [, m, d] = key.split("-");
+  return `${d}/${m}`;
 }
 
 /** Rótulo com dia da semana: "domingo, 30 de agosto de 2026". */
@@ -76,12 +82,15 @@ function RegistrationItem({ prospect, onOpen }: { prospect: Prospect; onOpen: (p
 }
 
 /**
- * Seletor de dia com navegação: ‹ [data] › · Hoje · Limpar.
- * Quando `value` está vazio, a navegação parte do dia de hoje (SP).
+ * Seletor de dia com navegação: ‹ [data] › · Hoje · Total.
+ * Quando `value` está vazio, a tela está no modo "Total" (sem recorte de dia)
+ * e a navegação parte do dia de hoje (SP).
  */
 function DayNavigator({ id, value, today, onChange }: { id: string; value: string; today: string; onChange: (next: string) => void }) {
   const base = value || today;
   const atToday = base >= today;
+  const isToday = value === today;
+  const isTotal = !value;
   return (
     <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-2">
       <div className="flex items-center gap-1.5">
@@ -114,16 +123,23 @@ function DayNavigator({ id, value, today, onChange }: { id: string; value: strin
         </button>
       </div>
       <div className="flex items-center gap-1.5">
-        <button type="button" className="btn btn-ghost !py-1.5 !text-xs" onClick={() => onChange(today)}>
+        <button
+          type="button"
+          aria-pressed={isToday}
+          title="Ver o dia de hoje"
+          className={`btn !py-1.5 !text-xs ${isToday ? "btn-primary" : "btn-ghost"}`}
+          onClick={() => onChange(today)}
+        >
           Hoje
         </button>
         <button
           type="button"
-          className="btn btn-ghost !py-1.5 !text-xs"
-          disabled={!value}
+          aria-pressed={isTotal}
+          title="Ver todos os cadastros, agrupados por data"
+          className={`btn !py-1.5 !text-xs ${isTotal ? "btn-primary" : "btn-ghost"}`}
           onClick={() => onChange("")}
         >
-          Limpar
+          Total
         </button>
       </div>
     </div>
@@ -151,15 +167,12 @@ export default function DesafioPage() {
   const { ready, prospects, challenge, saveChallenge } = useProspects();
   const { openCreate, openDetail } = useProspectForm();
   const stats = useMemo(() => computeStats(prospects), [prospects]);
-  const registered = registeredThisWeek(prospects);
 
   const [editing, setEditing] = useState(false);
-  const [goalCount, setGoalCount] = useState(challenge?.goalCount ?? 15);
-  const [contactGoal, setContactGoal] = useState(challenge?.contactGoal ?? 5);
+  const [goalCount, setGoalCount] = useState(challenge?.goalCount ?? 60);
+  const [contactGoal, setContactGoal] = useState(challenge?.contactGoal ?? 2);
   const [today, setToday] = useState(() => spDateKey(new Date()));
   const [filterDate, setFilterDate] = useState(today);
-  const groupsBoxRef = useRef<HTMLDivElement>(null);
-  const selectedGroupRef = useRef<HTMLElement>(null);
 
   /** Prospectos agrupados por dia LOCAL de cadastro, dias mais recentes primeiro. */
   const groupedByDay = useMemo(() => {
@@ -189,20 +202,19 @@ export default function DesafioPage() {
     return () => window.clearInterval(id);
   }, []);
 
-  /** Rola a lista completa até o grupo do dia selecionado, sem mexer na página. */
-  useEffect(() => {
-    const box = groupsBoxRef.current;
-    const target = selectedGroupRef.current;
-    if (!box || !target) return;
-    box.scrollTo({ top: Math.max(0, target.offsetTop - box.offsetTop), behavior: "smooth" });
-  }, [filterDate, groupedByDay]);
+  /** Contatos do recorte atual: do dia selecionado ou o total geral. */
+  const contactCount = useMemo(
+    () => (filterDate ? contactsOnDay(prospects, filterDate) : totalContacts(prospects)),
+    [prospects, filterDate],
+  );
 
   if (!ready || !challenge) return <LoadingScreen />;
 
-  const regPct = Math.min(1, registered / Math.max(1, challenge.goalCount));
-  const contactPct = Math.min(1, stats.contactsThisWeek / Math.max(1, challenge.contactGoal));
-  const regDone = registered >= challenge.goalCount;
-  const contactDone = stats.contactsThisWeek >= challenge.contactGoal;
+  const totalProspects = stats.total;
+  const regPct = Math.min(1, totalProspects / Math.max(1, challenge.goalCount));
+  const contactPct = Math.min(1, contactCount / Math.max(1, challenge.contactGoal));
+  const regDone = totalProspects >= challenge.goalCount;
+  const contactDone = contactCount >= challenge.contactGoal;
   const complete = regDone && contactDone;
   const quote = MOTIVATIONAL_QUOTES[challenge.week % MOTIVATIONAL_QUOTES.length];
   const incentive = incentiveFor((regPct + contactPct) / 2);
@@ -216,9 +228,10 @@ export default function DesafioPage() {
     <div className="mx-auto flex max-w-4xl flex-col gap-5 pb-6">
       <header className="reveal pt-2">
         <p className="font-hand text-2xl text-brand-500">Um passo de cada vez, toda semana.</p>
-        <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">Desafio da semana {challenge.week}</h1>
+        <h1 className="font-display text-3xl font-extrabold text-ink sm:text-4xl">Desafio da semana</h1>
         <p className="mt-1 text-xs text-ink-faint">
-          O progresso abaixo conta apenas os cadastros e contatos <b className="text-ink-soft">desta semana</b> — ele zera a cada nova semana do calendário.
+          O 1º anel mostra o <b className="text-ink-soft">total de prospectos</b> já cadastrados (nunca zera). O 2º acompanha os{" "}
+          <b className="text-ink-soft">contatos do dia escolhido</b> abaixo — ou o total, no modo “Total”.
         </p>
         <p className="chip chip-brand chip-lg mt-1.5">
           🗓️ {spNowLabel()} <span className="font-normal text-ink-soft">· horário de São Paulo</span>
@@ -226,16 +239,36 @@ export default function DesafioPage() {
       </header>
 
       <GlassCard strong className="reveal p-6">
-        <div className="flex flex-col items-center gap-8 sm:flex-row sm:justify-around">
-          <div className="flex flex-col items-center gap-2">
-            <ProgressRing value={registered} max={challenge.goalCount} size={130} label={`${registered}/${challenge.goalCount}`} sub="prospectos" />
-            <span className="text-sm font-semibold text-ink-soft">Registrar prospectos</span>
-            {regDone && <span className="font-hand text-base text-emerald-600">🎉 Meta de cadastros batida!</span>}
+        <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-start">
+          <div className="flex w-full flex-col items-center gap-2 sm:flex-1 sm:basis-0">
+            <ProgressRing value={totalProspects} max={challenge.goalCount} size={130} label={`${totalProspects}/${challenge.goalCount}`} sub="prospectos" />
+            <span className="text-sm font-semibold text-ink-soft">Total de Prospectos</span>
+            <span className="text-center text-[11px] leading-4 text-ink-faint sm:min-h-8">acumulado geral · meta {challenge.goalCount}</span>
+            <span
+              className={`font-hand text-base leading-6 text-emerald-600 ${regDone ? "" : "hidden sm:block sm:min-h-6"}`}
+              aria-hidden={regDone ? undefined : true}
+            >
+              {regDone ? "🎉 Meta de cadastros batida!" : null}
+            </span>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <ProgressRing value={stats.contactsThisWeek} max={challenge.contactGoal} size={130} label={`${stats.contactsThisWeek}/${challenge.contactGoal}`} sub="contatos" />
+          <div className="flex w-full flex-col items-center gap-2 sm:flex-1 sm:basis-0">
+            <ProgressRing
+              value={contactCount}
+              max={challenge.contactGoal}
+              size={130}
+              label={`${contactCount}/${challenge.contactGoal}`}
+              sub={filterDate ? formatDayShort(filterDate) : "total"}
+            />
             <span className="text-sm font-semibold text-ink-soft">Fazer contatos</span>
-            {contactDone && <span className="font-hand text-base text-emerald-600">🎉 Meta de contatos batida!</span>}
+            <span className="text-center text-[11px] leading-4 text-ink-faint sm:min-h-8">
+              {filterDate ? `contatos em ${formatDayShort(filterDate)}` : "contatos (total)"}
+            </span>
+            <span
+              className={`font-hand text-base leading-6 text-emerald-600 ${contactDone ? "" : "hidden sm:block sm:min-h-6"}`}
+              aria-hidden={contactDone ? undefined : true}
+            >
+              {contactDone ? "🎉 Meta de contatos batida!" : null}
+            </span>
           </div>
         </div>
 
@@ -243,7 +276,7 @@ export default function DesafioPage() {
           <div className="mt-6 rounded-2xl p-5 text-center ring-1 ring-emerald-300/50" style={{ background: "linear-gradient(135deg,rgba(34,197,94,.18),rgba(96,165,250,.18))" }}>
             <p className="font-display text-xl font-extrabold text-ink">🎉 Desafio concluído!</p>
             <p className="font-hand mt-1 text-xl text-brand-600">{quote}</p>
-            <p className="mt-2 text-sm text-ink-soft">Excelente trabalho! O progresso zera automaticamente na próxima semana.</p>
+            <p className="mt-2 text-sm text-ink-soft">Excelente trabalho! Escolha outro dia abaixo para acompanhar os contatos de outra data.</p>
           </div>
         ) : (
           <div className="mt-6 flex flex-col items-center gap-3">
@@ -254,7 +287,7 @@ export default function DesafioPage() {
 
         <div className="mt-5 border-t border-brand-100/70 pt-4">
           <div className="flex flex-col items-center gap-2">
-            <label className="label !mb-0" htmlFor="ver-cadastros-dia">Ver cadastros do dia</label>
+            <label className="label !mb-0" htmlFor="ver-cadastros-dia">Dia acompanhado</label>
             <DayNavigator id="ver-cadastros-dia" value={filterDate} today={today} onChange={setFilterDate} />
           </div>
           <p className="mt-2 text-center text-xs text-ink-faint">
@@ -263,10 +296,16 @@ export default function DesafioPage() {
                 <b className="text-ink-soft">
                   {filteredList.length} {filteredList.length === 1 ? "cadastro" : "cadastros"}
                 </b>{" "}
+                e{" "}
+                <b className="text-ink-soft">
+                  {contactCount} {contactCount === 1 ? "contato" : "contatos"}
+                </b>{" "}
                 em {formatDayFull(filterDate)} — detalhes em “Cadastros por data”.
               </>
             ) : (
-              <>Nenhum dia selecionado — use ‹ › ou “Hoje” para escolher uma data.</>
+              <>
+                Modo <b className="text-ink-soft">Total</b> — somando todos os dias. Use ‹ › ou “Hoje” para ver um dia específico.
+              </>
             )}
           </p>
         </div>
@@ -293,7 +332,7 @@ export default function DesafioPage() {
             </div>
           </div>
         ) : (
-          <p className="mt-2 text-sm text-ink-soft">Meta: registrar <b className="text-ink">{challenge.goalCount}</b> prospectos e fazer <b className="text-ink">{challenge.contactGoal}</b> contatos nesta semana.</p>
+          <p className="mt-2 text-sm text-ink-soft">Meta: chegar a <b className="text-ink">{challenge.goalCount}</b> prospectos no mapa e fazer <b className="text-ink">{challenge.contactGoal}</b> contatos no dia acompanhado.</p>
         )}
       </GlassCard>
 
@@ -307,7 +346,9 @@ export default function DesafioPage() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="font-display font-bold text-ink">Cadastros por data</h2>
-            <p className="mt-1 text-xs text-ink-faint">Escolha um dia ou veja todos os prospectos agrupados por data de cadastro.</p>
+            <p className="mt-1 text-xs text-ink-faint">
+              {filterDate ? "Mostrando apenas o dia selecionado." : "Modo Total: todos os prospectos agrupados por data de cadastro."}
+            </p>
           </div>
           <div className="w-full sm:w-auto">
             <label className="label" htmlFor="filtro-data">Filtrar por dia</label>
@@ -315,14 +356,17 @@ export default function DesafioPage() {
           </div>
         </div>
 
-        {filterDate && (
+        {filterDate ? (
           <div className="mt-4">
-            <p className="text-sm font-semibold text-ink-soft">
-              {filteredList.length} {filteredList.length === 1 ? "prospecto cadastrado" : "prospectos cadastrados"} em {formatDayFull(filterDate)}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="chip chip-brand-strong !py-0.5 !text-[11px]">Dia selecionado</span>
+              <span className="text-sm font-semibold text-ink-soft">
+                {filteredList.length} {filteredList.length === 1 ? "prospecto cadastrado" : "prospectos cadastrados"} em {formatDayFull(filterDate)}
+              </span>
+            </div>
             {filteredList.length === 0 ? (
               <p className="mt-2 text-sm text-ink-faint">
-                Nenhum prospecto cadastrado em {formatDayFull(filterDate)} — veja abaixo todos os cadastros por data.
+                Nenhum prospecto cadastrado em {formatDayFull(filterDate)} — use ‹ › para navegar ou “Total” para ver todos.
               </p>
             ) : (
               <div className="mt-2 max-h-72 space-y-1 overflow-auto pr-1">
@@ -332,39 +376,25 @@ export default function DesafioPage() {
               </div>
             )}
           </div>
+        ) : groupedByDay.length === 0 ? (
+          <p className="mt-4 text-sm text-ink-faint">Nenhum prospecto cadastrado ainda.</p>
+        ) : (
+          <div className="mt-4 max-h-96 space-y-3 overflow-auto pr-1">
+            {groupedByDay.map((group) => (
+              <section key={group.key} className="rounded-2xl px-2 py-2">
+                <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">{formatDayLong(group.key)}</span>
+                  <span className="chip chip-brand !py-0.5 !text-[11px]">{group.items.length}</span>
+                </div>
+                <div className="space-y-1">
+                  {group.items.map((p) => (
+                    <RegistrationItem key={p.id} prospect={p} onOpen={openDetail} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         )}
-
-        <div className="mt-5 border-t border-brand-100/70 pt-4">
-          <h3 className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-faint">Todos os cadastros por dia</h3>
-          {groupedByDay.length === 0 ? (
-            <p className="mt-3 text-sm text-ink-faint">Nenhum prospecto cadastrado ainda.</p>
-          ) : (
-            <div ref={groupsBoxRef} className="mt-3 max-h-96 space-y-3 overflow-auto pr-1">
-              {groupedByDay.map((group) => {
-                const isSelected = group.key === filterDate;
-                return (
-                  <section
-                    key={group.key}
-                    ref={isSelected ? selectedGroupRef : undefined}
-                    aria-current={isSelected ? "date" : undefined}
-                    className={`scroll-mt-2 rounded-2xl px-2 py-2 transition-colors ${isSelected ? "bg-brand-50/70 ring-2 ring-brand-400/60" : ""}`}
-                  >
-                    <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">{formatDayLong(group.key)}</span>
-                      <span className="chip chip-brand !py-0.5 !text-[11px]">{group.items.length}</span>
-                      {isSelected && <span className="chip chip-brand-strong !py-0.5 !text-[11px]">Dia selecionado</span>}
-                    </div>
-                    <div className="space-y-1">
-                      {group.items.map((p) => (
-                        <RegistrationItem key={p.id} prospect={p} onOpen={openDetail} />
-                      ))}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
-          )}
-        </div>
       </GlassCard>
     </div>
   );

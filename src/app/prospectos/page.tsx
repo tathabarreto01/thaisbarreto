@@ -8,6 +8,7 @@ import { GlassCard, EmptyState, ConfirmDialog, LoadingScreen } from "@/component
 import { ProspectCard } from "@/components/prospect-card";
 import { useProspectForm } from "@/components/shell";
 import { downloadCSV } from "@/lib/export";
+import { MENU_COMPACT, SelectMenu, type SelectOption } from "@/components/select-menu";
 
 type Sort = "recent" | "name" | "interest";
 type Period = "all" | "today" | "week" | "month" | "year" | "custom";
@@ -20,6 +21,41 @@ const PERIOD_LABELS: Record<Period, string> = {
   year: "Este ano",
   custom: "Personalizado",
 };
+
+/** Gatilho compacto da barra de filtros (não estica no flex-wrap). */
+const COMPACT_TRIGGER = "!w-auto !py-1.5 !text-sm";
+
+const SORT_OPTIONS: SelectOption[] = [
+  { value: "recent", label: "Mais recentes" },
+  { value: "name", label: "Nome (A-Z)" },
+  { value: "interest", label: "Maior interesse" },
+];
+
+const CATEGORY_OPTIONS: SelectOption[] = [
+  { value: "all", label: "Todas as categorias" },
+  ...CATEGORIES.map((c) => ({ value: c.id, label: c.label, icon: c.icon })),
+];
+
+const INTIMACY_OPTIONS: SelectOption[] = [
+  { value: "all", label: "Toda intimidade" },
+  ...INTIMACY.map((i) => ({ value: i.id, label: i.label })),
+];
+
+const STATUS_OPTIONS: SelectOption[] = [
+  { value: "all", label: "Todo status" },
+  ...STATUSES.map((s) => ({ value: s.id, label: s.label })),
+];
+
+const INTEREST_OPTIONS: SelectOption[] = [
+  { value: "0", label: "Qualquer interesse" },
+  ...[1, 2, 3, 4, 5].map((n) => ({ value: String(n), label: `${n}★ ou mais` })),
+];
+
+const PERIOD_OPTIONS: SelectOption[] = (Object.keys(PERIOD_LABELS) as Period[]).map((p) => ({
+  value: p,
+  label: PERIOD_LABELS[p],
+  icon: "🗓️",
+}));
 
 /** Início da semana com segunda-feira = 0 (igual a derive.ts). */
 function startOfWeek(base: Date): Date {
@@ -130,7 +166,7 @@ export default function ProspectosPage() {
       </header>
 
       {/* Filters */}
-      <GlassCard className="reveal flex flex-col gap-3 p-4">
+      <GlassCard className="reveal relative z-30 flex flex-col gap-3 p-4">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint">
@@ -138,35 +174,63 @@ export default function ProspectosPage() {
             </span>
             <input className="field !pl-9" placeholder="Buscar por nome, cidade, interesse…" value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
-          <select className="field !w-auto" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
-            <option value="recent">Mais recentes</option>
-            <option value="name">Nome (A-Z)</option>
-            <option value="interest">Maior interesse</option>
-          </select>
+          <SelectMenu
+            id="filter-sort"
+            ariaLabel="Ordenar por"
+            value={sort}
+            options={SORT_OPTIONS}
+            triggerClassName="!w-auto"
+            menuClassName={MENU_COMPACT}
+            onChange={(v) => setSort(v as Sort)}
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select className="field !w-auto !py-1.5 !text-sm" value={cat} onChange={(e) => setCat(e.target.value as CategoryId | "all")}>
-            <option value="all">Todas as categorias</option>
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
-          </select>
-          <select className="field !w-auto !py-1.5 !text-sm" value={intim} onChange={(e) => setIntim(e.target.value as Intimacy | "all")}>
-            <option value="all">Toda intimidade</option>
-            {INTIMACY.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
-          </select>
-          <select className="field !w-auto !py-1.5 !text-sm" value={status} onChange={(e) => setStatus(e.target.value as FunnelStatus | "all")}>
-            <option value="all">Todo status</option>
-            {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-          </select>
-          <select className="field !w-auto !py-1.5 !text-sm" value={minInterest} onChange={(e) => setMinInterest(Number(e.target.value))}>
-            <option value={0}>Qualquer interesse</option>
-            {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}★ ou mais</option>)}
-          </select>
-          <select className="field !w-auto !py-1.5 !text-sm" value={period} onChange={(e) => setPeriod(e.target.value as Period)} aria-label="Período de cadastro">
-            {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
-              <option key={p} value={p}>🗓️ {PERIOD_LABELS[p]}</option>
-            ))}
-          </select>
+          <SelectMenu
+            id="filter-category"
+            ariaLabel="Categoria"
+            value={cat}
+            options={CATEGORY_OPTIONS}
+            triggerClassName={COMPACT_TRIGGER}
+            menuClassName={MENU_COMPACT}
+            onChange={(v) => setCat(v as CategoryId | "all")}
+          />
+          <SelectMenu
+            id="filter-intimacy"
+            ariaLabel="Nível de intimidade"
+            value={intim}
+            options={INTIMACY_OPTIONS}
+            triggerClassName={COMPACT_TRIGGER}
+            menuClassName={MENU_COMPACT}
+            onChange={(v) => setIntim(v as Intimacy | "all")}
+          />
+          <SelectMenu
+            id="filter-status"
+            ariaLabel="Status no funil"
+            value={status}
+            options={STATUS_OPTIONS}
+            triggerClassName={COMPACT_TRIGGER}
+            menuClassName={MENU_COMPACT}
+            onChange={(v) => setStatus(v as FunnelStatus | "all")}
+          />
+          <SelectMenu
+            id="filter-interest"
+            ariaLabel="Interesse mínimo"
+            value={String(minInterest)}
+            options={INTEREST_OPTIONS}
+            triggerClassName={COMPACT_TRIGGER}
+            menuClassName={MENU_COMPACT}
+            onChange={(v) => setMinInterest(Number(v))}
+          />
+          <SelectMenu
+            id="filter-period"
+            ariaLabel="Período de cadastro"
+            value={period}
+            options={PERIOD_OPTIONS}
+            triggerClassName={COMPACT_TRIGGER}
+            menuClassName={MENU_COMPACT}
+            onChange={(v) => setPeriod(v as Period)}
+          />
           <button onClick={() => setFavOnly((v) => !v)} className="chip transition-all" style={{ background: favOnly ? "rgba(245,158,11,.16)" : "var(--w55)", color: favOnly ? "var(--favorite-fg)" : "var(--ink-soft)", borderColor: favOnly ? "rgba(245,158,11,.4)" : "var(--chip-muted-border)", fontWeight: 700, cursor: "pointer", padding: "0.4rem 0.75rem" }}>★ Só principais</button>
           {activeFilters > 0 && <button className="btn btn-ghost !py-1.5 !text-xs" onClick={clearFilters}>Limpar filtros ({activeFilters})</button>}
         </div>
