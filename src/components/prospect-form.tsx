@@ -637,8 +637,8 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
           )}
         </div>
 
-        <div className="grid grid-cols-[1fr_auto] gap-3">
-          <div>
+        <div className="flex flex-col gap-3">
+          <div className="min-w-0">
             <label className="label" htmlFor="prospect-nextstep">Próximo passo</label>
             <SelectMenu
               id="prospect-nextstep"
@@ -649,9 +649,9 @@ function ProspectFormContent({ open, editing, preset, onClose, onCreate, onUpdat
               onChange={(v) => set("nextStep", v)}
             />
           </div>
-          <div>
-            <label className="label">Data</label>
-            <input className="field" type="date" value={form.nextStepDate} onChange={(e) => set("nextStepDate", e.target.value)} />
+          <div className="min-w-0">
+            <label className="label" htmlFor="prospect-nextstep-date">Data</label>
+            <input id="prospect-nextstep-date" className="field w-full min-w-0" type="date" value={form.nextStepDate} onChange={(e) => set("nextStepDate", e.target.value)} />
           </div>
         </div>
 

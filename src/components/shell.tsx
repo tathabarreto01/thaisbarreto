@@ -129,7 +129,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
     <FormController.Provider value={ctx}>
       <div className="relative z-10 flex min-h-dvh">
         {/* Sidebar (desktop) */}
-        <aside className="no-print sticky top-0 hidden h-dvh w-[268px] shrink-0 flex-col gap-6 p-4 lg:flex">
+        <aside className="no-print sticky top-0 z-40 hidden h-dvh w-[268px] shrink-0 flex-col gap-6 p-4 lg:flex">
           <div className="glass flex h-full flex-col gap-6 p-4">
             <div className="px-1 pt-1"><Brand /></div>
             <button className="btn btn-primary w-full" onClick={() => openCreate()}>
@@ -147,7 +147,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
         {/* Main column */}
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Topbar + menu dropdown (mobile) */}
-          <div className="no-print sticky top-0 z-30 lg:hidden">
+          <div className="no-print sticky top-0 z-40 lg:hidden">
             {mobileNav && (
               <div className="fixed inset-0 bg-[#0b1c3f]/30 backdrop-blur-sm" onClick={() => setMobileNav(false)} />
             )}
