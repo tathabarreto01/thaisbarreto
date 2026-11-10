@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { GlassCard } from "./ui";
+import { APP_VERSION_LABEL } from "@/lib/version";
 
 export function LoginScreen() {
   const { signIn, signUp, signedOutReason } = useAuth();
@@ -91,6 +92,8 @@ export function LoginScreen() {
         </GlassCard>
 
         <p className="mt-4 text-center text-xs text-ink-faint reveal">🔒 Seus dados ficam protegidos por regras de acesso — só você vê seus prospectos.</p>
+        {/* Ano fixo: evita divergência servidor/cliente na virada do ano. */}
+        <p className="no-print mt-2 text-center text-[11px] text-ink-faint reveal">© 2026 Mapa de Prospectos · Criado por Maxine Lobato Lima{APP_VERSION_LABEL && ` · ${APP_VERSION_LABEL}`}</p>
       </div>
     </div>
   );

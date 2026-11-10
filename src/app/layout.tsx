@@ -34,6 +34,9 @@ export const metadata: Metadata = {
   description:
     "Registre e organize seus prospectos por família, amigos, redes sociais, comunidade e trabalho. Sua próxima oportunidade pode estar mais perto do que você pensa.",
   applicationName: "Mapa de Prospectos",
+  authors: [{ name: "Maxine Lobato Lima" }],
+  creator: "Maxine Lobato Lima",
+  publisher: "Maxine Lobato Lima",
   // Instalado na tela inicial do iOS: abre em tela cheia com o nome curto.
   appleWebApp: {
     capable: true,

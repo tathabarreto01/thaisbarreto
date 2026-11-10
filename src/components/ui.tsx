@@ -6,33 +6,39 @@ import { INTIMACY, getIntimacyDef, getStatusDef, INTEREST_LABELS } from "@/lib/t
 import { useTheme } from "@/lib/theme";
 
 /* ---------------- Theme toggle ---------------- */
-export function ThemeToggle() {
+/** `iconOnly`: versão compacta (só ícone), no padrão dos botões de ícone da sidebar. */
+export function ThemeToggle({ iconOnly = false }: { iconOnly?: boolean } = {}) {
   const { theme, mounted, toggleTheme } = useTheme();
   const dark = theme === "dark";
+  const icon = mounted && dark ? (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  ) : (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
   return (
     <button
       type="button"
       onClick={toggleTheme}
-      className="btn btn-ghost w-full !justify-start gap-2.5 !py-2.5"
+      className={iconOnly ? "btn btn-ghost shrink-0 !px-2.5 !py-1.5" : "btn btn-ghost w-full !justify-start gap-2.5 !py-2.5"}
       aria-label={dark ? "Ativar modo claro" : "Ativar modo escuro"}
       aria-pressed={mounted ? dark : undefined}
       title={dark ? "Modo claro" : "Modo escuro"}
     >
-      <span className="grid h-6 w-6 place-items-center" aria-hidden>
-        {mounted && dark ? (
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-          </svg>
-        ) : (
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        )}
-      </span>
-      <span className="text-[13px] font-semibold">
-        {mounted ? (dark ? "Modo claro" : "Modo escuro") : "Tema"}
-      </span>
+      {iconOnly ? (
+        <span className="grid place-items-center" aria-hidden>{icon}</span>
+      ) : (
+        <>
+          <span className="grid h-6 w-6 place-items-center" aria-hidden>{icon}</span>
+          <span className="text-[13px] font-semibold">
+            {mounted ? (dark ? "Modo claro" : "Modo escuro") : "Tema"}
+          </span>
+        </>
+      )}
     </button>
   );
 }
